@@ -64,9 +64,9 @@ export const generateICS = (schedule: Schedule, eventName: string = 'Cumbre de I
         `DTSTART;TZID=America/Mexico_City:${startTime}`,
         `DTEND;TZID=America/Mexico_City:${endTime}`,
         `SUMMARY:${session.title}`,
-        `DESCRIPTION:Ponentes: ${speakers}\\nSala: ${session.room}\\nEstado: ${session.status}`,
+        `DESCRIPTION:Ponentes: ${speakers}\\nSala: ${session.room}`,
         `LOCATION:${session.room}`,
-        `STATUS:${session.status === 'Confirmada' ? 'CONFIRMED' : 'TENTATIVE'}`,
+        `STATUS:CONFIRMED`,
         `CATEGORIES:${session.trackId}`,
         'END:VEVENT'
       ].join('\r\n');
@@ -87,7 +87,7 @@ export const generateGoogleCalendarURL = (session: Session): string => {
   googleURL.searchParams.set('action', 'TEMPLATE');
   googleURL.searchParams.set('text', session.title);
   googleURL.searchParams.set('dates', `${startDate}/${endDate}`);
-  googleURL.searchParams.set('details', `Ponentes: ${speakers}\nSala: ${session.room}\nEstado: ${session.status}`);
+  googleURL.searchParams.set('details', `Ponentes: ${speakers}\nSala: ${session.room}`);
   googleURL.searchParams.set('location', session.room);
   googleURL.searchParams.set('ctz', 'America/Mexico_City');
   

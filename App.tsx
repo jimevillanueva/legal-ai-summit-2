@@ -4,7 +4,6 @@ import { SessionStatus } from './types';
 import { getInitialSchedule, getDefaultTracks } from './constants';
 import { encodeSchedule, decodeSchedule, checkForConflicts } from './utils/schedule';
 import Header from './components/Header';
-import NavigationMenu from './components/NavigationMenu';
 import ScheduleGrid from './components/ScheduleGrid';
 import EditSessionModal from './components/EditSessionModal';
 import ImportExportModal from './components/ImportExportModal';
@@ -17,7 +16,6 @@ const App: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isImportExportModalOpen, setIsImportExportModalOpen] = useState(false);
   const [isTrackModalOpen, setIsTrackModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('agenda');
   
   console.log('App rendering, schedule:', schedule);
 
@@ -106,7 +104,7 @@ const App: React.FC = () => {
       room: '',
       day,
       time,
-      status: SessionStatus.PROPOSED
+      status: SessionStatus.CONFIRMED
     }
     setEditingSession(newSession);
     setIsEditModalOpen(true);
@@ -168,49 +166,6 @@ const App: React.FC = () => {
     }
   };
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'agenda':
-        return (
-          <ScheduleGrid 
-            schedule={schedule}
-            tracks={tracks}
-            onSessionDrop={handleSessionDrop}
-            onEditSession={handleEditSession}
-            onAddSession={handleAddSession}
-          />
-        );
-      case 'ponentes':
-        return (
-          <div className="flex-grow p-8 flex items-center justify-center">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Ponentes</h2>
-              <p className="text-gray-600 dark:text-gray-300">Sección de ponentes en desarrollo</p>
-            </div>
-          </div>
-        );
-      case 'información':
-        return (
-          <div className="flex-grow p-8 flex items-center justify-center">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Información del Evento</h2>
-              <p className="text-gray-600 dark:text-gray-300">Información general del evento en desarrollo</p>
-            </div>
-          </div>
-        );
-      default:
-        return (
-          <ScheduleGrid 
-            schedule={schedule}
-            tracks={tracks}
-            onSessionDrop={handleSessionDrop}
-            onEditSession={handleEditSession}
-            onAddSession={handleAddSession}
-          />
-        );
-    }
-  };
-
   return (
     <div className="h-screen w-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       <Header 
@@ -218,11 +173,13 @@ const App: React.FC = () => {
         onImportExport={() => setIsImportExportModalOpen(true)}
         onManageTracks={() => setIsTrackModalOpen(true)}
       />
-      <NavigationMenu 
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
+      <ScheduleGrid 
+        schedule={schedule}
+        tracks={tracks}
+        onSessionDrop={handleSessionDrop}
+        onEditSession={handleEditSession}
+        onAddSession={handleAddSession}
       />
-      {renderContent()}
       <EditSessionModal
         isOpen={isEditModalOpen}
         session={editingSession}

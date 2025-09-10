@@ -83,21 +83,23 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({ schedule, tracks, onSession
                       {sessions.length < maxSessionsPerSlot && (
                         <button 
                           onClick={() => onAddSession(day, time)} 
-                          className="absolute bottom-1 right-1 w-6 h-6 flex items-center justify-center text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors group"
+                          className="absolute bottom-1 right-1 w-6 h-6 bg-gray-50 hover:bg-gray-100 border border-gray-200 hover:border-gray-300 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 transition-all opacity-60 hover:opacity-100"
                           aria-label={`Add another session on ${day} at ${time}`}
                         >
-                          <PlusIcon className="h-4 w-4 text-gray-300 dark:text-gray-600 group-hover:text-blue-500 transition-colors" />
+                          <PlusIcon className="h-3 w-3 transition-colors" />
                         </button>
                       )}
                     </div>
                   ) : (
-                    <button 
-                      onClick={() => onAddSession(day, time)} 
-                      className="w-full h-full flex items-center justify-center text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-200 group"
-                      aria-label={`Add session on ${day} at ${time}`}
-                    >
-                      <PlusIcon className="h-8 w-8 text-gray-300 dark:text-gray-600 group-hover:text-blue-500 transition-colors" />
-                    </button>
+                    <div className="w-full h-full flex items-center justify-center relative">
+                      <button 
+                        onClick={() => onAddSession(day, time)} 
+                        className="w-10 h-10 bg-gray-50 hover:bg-gray-100 border border-gray-200 hover:border-gray-300 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 transition-all opacity-40 hover:opacity-80"
+                        aria-label={`Add session on ${day} at ${time}`}
+                      >
+                        <PlusIcon className="h-5 w-5 transition-colors" />
+                      </button>
+                    </div>
                   )}
                 </div>
               );

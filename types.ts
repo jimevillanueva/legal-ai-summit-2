@@ -22,6 +22,7 @@ export interface Session {
   status: SessionStatus;
   hasConflict?: boolean;
   zoomLink?: string;
+  borderColor?: string;
 }
 
 export interface Track {

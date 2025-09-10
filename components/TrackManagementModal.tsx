@@ -75,27 +75,21 @@ const TrackManagementModal: React.FC<TrackManagementModalProps> = ({
           </button>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           {editableTracks.map((track, index) => (
-            <div key={track.id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Nombre del Track
-                  </label>
+            <div key={track.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+              <div className="flex items-center space-x-4">
+                <div className="flex-1">
                   <input
                     type="text"
                     value={track.name}
                     onChange={(e) => handleTrackChange(index, 'name', e.target.value)}
-                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-gray-200"
-                    placeholder="Ej: IA Legal"
+                    className="w-full p-2 border-0 bg-transparent font-medium text-gray-900 dark:text-white placeholder-gray-400 focus:ring-0 focus:outline-none"
+                    placeholder="Nombre del track"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Color de Fondo
-                  </label>
+                <div className="w-32">
                   <select
                     value={track.color}
                     onChange={(e) => {
@@ -105,7 +99,7 @@ const TrackManagementModal: React.FC<TrackManagementModalProps> = ({
                         handleTrackChange(index, 'textColor', selectedColor.text);
                       }
                     }}
-                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-gray-200"
+                    className="w-full p-2 text-sm border border-gray-200 rounded-md dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500"
                   >
                     {predefinedColors.map((color) => (
                       <option key={color.bg} value={color.bg}>
@@ -115,49 +109,43 @@ const TrackManagementModal: React.FC<TrackManagementModalProps> = ({
                   </select>
                 </div>
 
-                <div className="flex items-center space-x-2">
-                  <div className="flex-1">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Vista Previa
-                    </label>
-                    <div className={`p-3 rounded-lg ${track.color} ${track.textColor}`}>
-                      <div className="font-medium text-sm">{track.name}</div>
-                      <div className="text-xs opacity-75">Vista previa</div>
-                    </div>
-                  </div>
-                  <div className="mt-6">
-                    <button
-                      onClick={() => handleDeleteTrack(index)}
-                      className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-sm"
-                    >
-                      🗑️
-                    </button>
+                <div className="w-24">
+                  <div className={`px-3 py-2 rounded-full text-center text-sm ${track.color} ${track.textColor}`}>
+                    {track.name || 'Preview'}
                   </div>
                 </div>
+
+                <button
+                  onClick={() => handleDeleteTrack(index)}
+                  className="w-8 h-8 bg-red-100 hover:bg-red-200 text-red-600 rounded-full flex items-center justify-center transition-colors"
+                  title="Eliminar track"
+                >
+                  ×
+                </button>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="flex justify-between mt-6">
+        <div className="flex justify-between mt-6 pt-4 border-t border-gray-200">
           <button
             onClick={handleAddTrack}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
           >
-            ➕ Agregar Track
+            + Agregar Track
           </button>
-          <div className="space-x-2">
+          <div className="space-x-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+              className="px-4 py-2 text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Cancelar
             </button>
             <button
               onClick={handleSave}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
-              Guardar Cambios
+              Guardar
             </button>
           </div>
         </div>

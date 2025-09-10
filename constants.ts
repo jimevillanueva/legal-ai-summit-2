@@ -36,7 +36,7 @@ const initialSessions: Session[] = [
     { id: 's11', title: 'Desayuno de Networking', speakers: [SPEAKERS[1]], trackId: 'practica', room: 'Sala Networking', day: DAYS[1], time: '8:00', status: SessionStatus.CONFIRMED },
     
     // Sesiones existentes
-    { id: 's1', title: 'IA en la Práctica Jurídica', speakers: [SPEAKERS[0]], trackId: 'legal-ia', room: 'Sala Conferencias 1', day: DAYS[0], time: '9:00', status: SessionStatus.CONFIRMED, zoomLink: 'https://zoom.us/j/111222333' },
+    { id: 's1', title: 'IA en la Práctica Jurídica', speakers: [SPEAKERS[0]], trackId: 'legal-ia', room: 'Sala Conferencias 1', day: DAYS[0], time: '9:00', status: SessionStatus.CONFIRMED, zoomLink: 'https://zoom.us/j/111222333', borderColor: '#8B5CF6' },
     { id: 's2', title: 'Automatización de Contratos', speakers: [SPEAKERS[1]], trackId: 'tecnologia', room: 'Sala Conferencias 2', day: DAYS[0], time: '10:00', status: SessionStatus.CONFIRMED, zoomLink: 'https://zoom.us/j/444555666' },
     { id: 's3', title: 'Regulación de IA en el Derecho', speakers: [SPEAKERS[2]], trackId: 'etica', room: 'Sala Conferencias 3', day: DAYS[0], time: '11:00', status: SessionStatus.CONFIRMED },
     { id: 's4', title: 'Casos de Uso de IA Legal', speakers: [SPEAKERS[3]], trackId: 'practica', room: 'Sala Conferencias 1', day: DAYS[1], time: '9:00', status: SessionStatus.CONFIRMED, zoomLink: 'https://zoom.us/j/777888999' },

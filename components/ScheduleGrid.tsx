@@ -19,10 +19,19 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({ schedule, tracks, onSession
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
+    e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
+    e.currentTarget.style.borderColor = '#3B82F6';
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.currentTarget.style.backgroundColor = '';
+    e.currentTarget.style.borderColor = '';
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>, day: string, time: string) => {
     e.preventDefault();
+    e.currentTarget.style.backgroundColor = '';
+    e.currentTarget.style.borderColor = '';
     const sessionId = e.dataTransfer.getData('sessionId');
     if (sessionId) {
       onSessionDrop(sessionId, day, time);
@@ -39,14 +48,14 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({ schedule, tracks, onSession
       <div className="grid grid-cols-[100px_repeat(5,1fr)] gap-1">
         <div className="sticky top-0 z-10"></div> {/* Corner */}
         {DAYS.map(day => (
-          <div key={day} className="text-center font-semibold text-sm p-1 sticky top-0 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 z-10">
+          <div key={day} className="text-center font-semibold p-1 sticky top-0 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 z-10" style={{fontSize: '11px'}}>
             {formatDate(day)}
           </div>
         ))}
 
         {TIMES.map(time => (
           <React.Fragment key={time}>
-            <div className="font-semibold text-sm sticky left-0 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 flex items-center justify-center">
+            <div className="font-semibold sticky left-0 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 flex items-center justify-center" style={{fontSize: '11px'}}>
               {time}
             </div>
             {DAYS.map(day => {
@@ -57,8 +66,9 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({ schedule, tracks, onSession
                 <div
                   key={`${day}-${time}`}
                   onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
                   onDrop={(e) => handleDrop(e, day, time)}
-                  className="min-h-24 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 transition-colors duration-200 relative"
+                  className="min-h-24 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 transition-all duration-200 relative"
                 >
                   {sessions.length > 0 ? (
                     <div className="h-full overflow-y-auto">

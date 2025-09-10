@@ -161,6 +161,36 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, tracks, is
           {/* Estado oculto: todas las sesiones se guardan como Confirmadas */}
           
           <div>
+            <label htmlFor="borderColor" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Color de Línea Lateral</label>
+            <div className="flex space-x-2 items-center mt-1">
+              <input 
+                type="color" 
+                name="borderColor" 
+                id="borderColor" 
+                value={formData.borderColor || '#6B7280'} 
+                onChange={handleChange}
+                className="w-12 h-10 rounded border border-gray-300 cursor-pointer"
+              />
+              <select
+                name="borderColor"
+                onChange={handleChange}
+                value={formData.borderColor || '#6B7280'}
+                className="flex-1 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              >
+                <option value="#8B5CF6">Púrpura</option>
+                <option value="#3B82F6">Azul</option>
+                <option value="#10B981">Verde</option>
+                <option value="#F59E0B">Naranja</option>
+                <option value="#EF4444">Rojo</option>
+                <option value="#EC4899">Rosa</option>
+                <option value="#8B5A00">Marrón</option>
+                <option value="#6B7280">Gris</option>
+              </select>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">Selecciona un color o usa el selector personalizado</p>
+          </div>
+
+          <div>
             <label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notas (opcional)</label>
             <textarea name="notes" id="notes" value={formData.notes || ''} onChange={handleChange} rows={3} placeholder="Información adicional sobre la sesión..." className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" />
           </div>

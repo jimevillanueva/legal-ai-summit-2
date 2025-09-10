@@ -1,0 +1,5 @@
+{
+  "name": "Legal AI Summit",
+  "description": "A drag-and-drop weekly event scheduler to organize sessions for a multi-day event. Features color-coded tracks, speaker conflict detection, and sharing via URL.",
+  "requestFramePermissions": []
+}

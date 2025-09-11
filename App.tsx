@@ -1,51 +1,59 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import type { Schedule, Session, Track } from './types';
+import type { Schedule, Session } from './types';
 import { SessionStatus } from './types';
-import { getInitialSchedule, getDefaultTracks } from './constants';
+import { getInitialSchedule } from './constants';
 import { encodeSchedule, decodeSchedule, checkForConflicts } from './utils/schedule';
 import Header from './components/Header';
 import ScheduleGrid from './components/ScheduleGrid';
 import EditSessionModal from './components/EditSessionModal';
 import ImportExportModal from './components/ImportExportModal';
-import TrackManagementModal from './components/TrackManagementModal';
+import { db } from './utils/db';
+import { supabase, useSupabase } from './utils/supabaseClient';
 
 const App: React.FC = () => {
   const [schedule, setSchedule] = useState<Schedule>(getInitialSchedule());
-  const [tracks, setTracks] = useState<Track[]>(getDefaultTracks());
   const [editingSession, setEditingSession] = useState<Session | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isImportExportModalOpen, setIsImportExportModalOpen] = useState(false);
-  const [isTrackModalOpen, setIsTrackModalOpen] = useState(false);
   
   console.log('App rendering, schedule:', schedule);
 
-  // Load initial data from URL hash or localStorage
+  // Load initial data: Supabase (si está activo) o fallback local
   useEffect(() => {
-    const hash = window.location.hash.substring(1);
-    let loadedSchedule: Schedule | null = null;
-    
-    if (hash) {
-      loadedSchedule = decodeSchedule(hash);
-      if (loadedSchedule) {
-        console.log("Loaded schedule from URL hash.");
-      }
-    }
-    
-    if (!loadedSchedule) {
-      try {
-        const localData = localStorage.getItem('eventSchedule');
-        if (localData) {
-          loadedSchedule = JSON.parse(localData);
-          console.log("Loaded schedule from localStorage.");
+    const init = async () => {
+      if (useSupabase()) {
+        try {
+          const { schedule: s } = await db.loadAll();
+          setSchedule(checkForConflicts(s));
+          const ch = supabase.channel('realtime-sessions')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'sessions' }, async () => {
+              try {
+                const { schedule: ns } = await db.loadAll();
+                setSchedule(checkForConflicts(ns));
+              } catch (e) { console.error(e); }
+            })
+            .subscribe();
+          return () => { supabase.removeChannel(ch); };
+        } catch (e) {
+          console.error('Supabase init failed, using local fallback', e);
         }
-      } catch (error) {
-        console.error("Failed to parse schedule from localStorage", error);
       }
-    }
-    
-    const finalSchedule = loadedSchedule || getInitialSchedule();
-    setSchedule(checkForConflicts(finalSchedule));
-    
+      const hash = window.location.hash.substring(1);
+      let loadedSchedule: Schedule | null = null;
+      if (hash) loadedSchedule = decodeSchedule(hash);
+      if (!loadedSchedule) {
+        try {
+          const localData = localStorage.getItem('eventSchedule');
+          if (localData) loadedSchedule = JSON.parse(localData);
+        } catch (error) {
+          console.error('Failed to parse schedule from localStorage', error);
+        }
+      }
+      const finalSchedule = loadedSchedule || getInitialSchedule();
+      setSchedule(checkForConflicts(finalSchedule));
+    };
+    const cleanup: any = init();
+    return () => { /* channel cleanup handled in init */ };
   }, []);
 
   // Save to localStorage whenever schedule changes
@@ -85,6 +93,10 @@ const App: React.FC = () => {
         const updatedSession = { ...sessionToMove, day: newDay, time: newTime };
         newSchedule[newDay][newTime].push(updatedSession);
         
+        if (useSupabase()) {
+          db.upsertSession(updatedSession).catch(console.error);
+        }
+        
         return checkForConflicts(newSchedule);
       });
     }
@@ -100,11 +112,11 @@ const App: React.FC = () => {
       id: `s${Date.now()}`,
       title: '',
       speakers: [],
-      trackId: 'legal-ia',
       room: '',
       day,
       time,
-      status: SessionStatus.CONFIRMED
+      status: SessionStatus.CONFIRMED,
+      borderColor: '#6B7280'
     }
     setEditingSession(newSession);
     setIsEditModalOpen(true);
@@ -123,6 +135,10 @@ const App: React.FC = () => {
       // Add to new slot
       newSchedule[updatedSession.day][updatedSession.time].push(updatedSession);
       
+      if (useSupabase()) {
+        db.upsertSession(updatedSession).catch(console.error);
+      }
+
       return checkForConflicts(newSchedule);
     });
     setIsEditModalOpen(false);
@@ -135,6 +151,7 @@ const App: React.FC = () => {
       setSchedule(prevSchedule => {
         const newSchedule = JSON.parse(JSON.stringify(prevSchedule));
         newSchedule[day][time].splice(index, 1);
+        if (useSupabase()) db.deleteSession(sessionId).catch(console.error);
         return checkForConflicts(newSchedule);
       });
     }
@@ -157,25 +174,14 @@ const App: React.FC = () => {
     setSchedule(checkForConflicts(newSchedule));
   };
 
-  const handleSaveTracks = (newTracks: Track[]) => {
-    setTracks(newTracks);
-    try {
-      localStorage.setItem('eventTracks', JSON.stringify(newTracks));
-    } catch (error) {
-      console.error("Failed to save tracks to localStorage", error);
-    }
-  };
-
   return (
     <div className="h-screen w-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       <Header 
         onShare={handleShare} 
         onImportExport={() => setIsImportExportModalOpen(true)}
-        onManageTracks={() => setIsTrackModalOpen(true)}
       />
       <ScheduleGrid 
         schedule={schedule}
-        tracks={tracks}
         onSessionDrop={handleSessionDrop}
         onEditSession={handleEditSession}
         onAddSession={handleAddSession}
@@ -183,7 +189,6 @@ const App: React.FC = () => {
       <EditSessionModal
         isOpen={isEditModalOpen}
         session={editingSession}
-        tracks={tracks}
         onClose={() => setIsEditModalOpen(false)}
         onSave={handleSaveSession}
         onDelete={handleDeleteSession}
@@ -193,12 +198,6 @@ const App: React.FC = () => {
         schedule={schedule}
         onClose={() => setIsImportExportModalOpen(false)}
         onImport={handleImport}
-      />
-      <TrackManagementModal
-        isOpen={isTrackModalOpen}
-        tracks={tracks}
-        onClose={() => setIsTrackModalOpen(false)}
-        onSaveTracks={handleSaveTracks}
       />
     </div>
   );

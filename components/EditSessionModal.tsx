@@ -1,19 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import type { Session, Speaker, Track } from '../types';
+import type { Session, Speaker } from '../types';
 import { SessionStatus } from '../types';
 import { DAYS, TIMES } from '../constants';
 import { XIcon } from './icons';
 
 interface EditSessionModalProps {
   session: Session | null;
-  tracks: Track[];
   isOpen: boolean;
   onClose: () => void;
   onSave: (session: Session) => void;
   onDelete: (sessionId: string) => void;
 }
 
-const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, tracks, isOpen, onClose, onSave, onDelete }) => {
+const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, onClose, onSave, onDelete }) => {
   const [formData, setFormData] = useState<Partial<Session>>({});
   const [speakersText, setSpeakersText] = useState('');
 
@@ -53,7 +52,7 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, tracks, is
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.title && formData.trackId && formData.speakers && formData.day && formData.time && formData.room) {
+    if (formData.title && formData.speakers && formData.day && formData.time && formData.room) {
       const payload: Session = {
         ...(formData as Session),
         status: SessionStatus.CONFIRMED,
@@ -129,18 +128,9 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, tracks, is
             />
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="trackId" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Track</label>
-              <select name="trackId" id="trackId" value={formData.trackId || ''} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                <option value="">Selecciona un track</option>
-                {tracks.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-              </select>
-            </div>
-            <div>
-              <label htmlFor="room" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Sala</label>
-              <input type="text" name="room" id="room" value={formData.room || ''} onChange={handleChange} required placeholder="Sala Conferencias 1" className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" />
-            </div>
+          <div>
+            <label htmlFor="room" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Sala</label>
+            <input type="text" name="room" id="room" value={formData.room || ''} onChange={handleChange} required placeholder="Sala Conferencias 1" className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" />
           </div>
           
           <div className="grid grid-cols-2 gap-4">

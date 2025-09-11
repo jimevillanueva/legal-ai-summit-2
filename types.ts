@@ -14,7 +14,6 @@ export interface Session {
   id: string;
   title: string;
   speakers: Speaker[];
-  trackId: string;
   room: string;
   day: string;
   time: string;
@@ -23,13 +22,6 @@ export interface Session {
   hasConflict?: boolean;
   zoomLink?: string;
   borderColor?: string;
-}
-
-export interface Track {
-  id: string;
-  name: string;
-  color: string;
-  textColor: string;
 }
 
 export type Schedule = Record<string, Record<string, Session[]>>;

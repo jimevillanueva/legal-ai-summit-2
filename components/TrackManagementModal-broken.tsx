@@ -42,24 +42,15 @@ const TrackManagementModal: React.FC<TrackManagementModalProps> = ({
   };
 
   const handleDeleteTrack = (index: number) => {
-    if (editableTracks.length <= 1) {
-      alert('Debe existir al menos un track.');
-      return;
-    }
     const newTracks = editableTracks.filter((_, i) => i !== index);
     setEditableTracks(newTracks);
   };
 
   const handleSave = () => {
-    if (editableTracks.length === 0) {
-      alert('Debe existir al menos un track.');
-      return;
-    }
     onSaveTracks(editableTracks);
     onClose();
   };
 
-  // Colores predefinidos con variantes dark
   const predefinedColors = [
     { bg: 'bg-blue-200 dark:bg-blue-800', text: 'text-blue-800 dark:text-blue-100', name: 'Azul', hex: '#3B82F6' },
     { bg: 'bg-green-200 dark:bg-green-800', text: 'text-green-800 dark:text-green-100', name: 'Verde', hex: '#10B981' },
@@ -74,7 +65,7 @@ const TrackManagementModal: React.FC<TrackManagementModalProps> = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center" onClick={onClose}>
       <div 
-        className="w-full max-w-3xl bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 m-4 max-h-[80vh] overflow-y-auto"
+        className="w-full max-w-4xl bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 m-4 max-h-[80vh] overflow-y-auto"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-6">
@@ -84,11 +75,11 @@ const TrackManagementModal: React.FC<TrackManagementModalProps> = ({
           </button>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2">
           {editableTracks.map((track, index) => (
             <div key={track.id} className="group hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg p-3 transition-all">
-              <div className="flex items-center space-x-4">
-                <div className="flex-1">
+              <div className="flex items-center space-x-3">
+                <div className="flex-1 min-w-0">
                   <input
                     type="text"
                     value={track.name}
@@ -98,20 +89,22 @@ const TrackManagementModal: React.FC<TrackManagementModalProps> = ({
                   />
                 </div>
 
-                <div className="w-32">
+                <div className="w-28">
                   <select
                     value={predefinedColors.find(c => c.bg === track.color)?.hex || track.color}
                     onChange={(e) => {
-                      const selected = predefinedColors.find(c => c.hex === e.target.value);
-                      if (selected) {
-                        handleTrackChange(index, 'color', selected.bg);
-                        handleTrackChange(index, 'textColor', selected.text);
+                      const selectedColor = predefinedColors.find(c => c.hex === e.target.value);
+                      if (selectedColor) {
+                        handleTrackChange(index, 'color', selectedColor.bg);
+                        handleTrackChange(index, 'textColor', selectedColor.text);
                       }
                     }}
                     className="w-full p-2 text-xs border border-gray-200 rounded-md bg-white dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 focus:border-blue-500"
                   >
-                    {predefinedColors.map((c) => (
-                      <option key={c.hex} value={c.hex}>{c.name}</option>
+                    {predefinedColors.map((color) => (
+                      <option key={color.hex} value={color.hex}>
+                        {color.name}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -121,8 +114,10 @@ const TrackManagementModal: React.FC<TrackManagementModalProps> = ({
                     className="px-2 py-1 rounded-md text-center text-xs font-medium text-white shadow-sm"
                     style={{ 
                       backgroundColor: (() => {
-                        const match = predefinedColors.find(c => c.bg === track.color);
-                        return match ? match.hex : '#6B7280';
+                        const colorMatch = predefinedColors.find(c => c.bg === track.color);
+                        const finalColor = colorMatch ? colorMatch.hex : '#6B7280';
+                        console.log('Track:', track.name, 'Color:', track.color, 'Final:', finalColor);
+                        return finalColor;
                       })()
                     }}
                   >
@@ -132,10 +127,12 @@ const TrackManagementModal: React.FC<TrackManagementModalProps> = ({
 
                 <button
                   onClick={() => handleDeleteTrack(index)}
-                  className="w-8 h-8 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
+                  className="w-7 h-7 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
                   title="Eliminar track"
                 >
-                  ×
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
                 </button>
               </div>
             </div>

@@ -1,18 +1,17 @@
 import React from 'react';
-import type { Schedule, Session, Track } from '../types';
+import type { Schedule, Session } from '../types';
 import { DAYS, TIMES } from '../constants';
 import SessionCard from './SessionCard';
 import { PlusIcon } from './icons';
 
 interface ScheduleGridProps {
   schedule: Schedule;
-  tracks: Track[];
   onSessionDrop: (sessionId: string, newDay: string, newTime: string) => void;
   onEditSession: (session: Session) => void;
   onAddSession: (day: string, time: string) => void;
 }
 
-const ScheduleGrid: React.FC<ScheduleGridProps> = ({ schedule, tracks, onSessionDrop, onEditSession, onAddSession }) => {
+const ScheduleGrid: React.FC<ScheduleGridProps> = ({ schedule, onSessionDrop, onEditSession, onAddSession }) => {
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, session: Session) => {
     e.dataTransfer.setData('sessionId', session.id);
   };
@@ -76,8 +75,7 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({ schedule, tracks, onSession
                         {sessions.slice(0, maxSessionsPerSlot).map((session, index) => (
                           <div key={session.id} className="relative">
                             <SessionCard 
-                              session={session} 
-                              tracks={tracks}
+                              session={session}
                               onDoubleClick={onEditSession}
                               onDragStart={handleDragStart}
                               isCompact={sessions.length > 1}

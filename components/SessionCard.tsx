@@ -1,33 +1,18 @@
 import React from 'react';
-import type { Session, Track } from '../types';
+import type { Session } from '../types';
 import { AlertTriangleIcon } from './icons';
 import { exportToGoogleCalendar, exportSelectedSessions } from '../utils/calendarExport';
 
 interface SessionCardProps {
   session: Session;
-  tracks: Track[];
   onDoubleClick: (session: Session) => void;
   onDragStart: (e: React.DragEvent<HTMLDivElement>, session: Session) => void;
   isCompact?: boolean;
 }
 
-const SessionCard: React.FC<SessionCardProps> = ({ session, tracks, onDoubleClick, onDragStart, isCompact = false }) => {
-  const track = tracks.find(t => t.id === session.trackId) || tracks[0];
-
-  // Línea de color personalizable o por defecto basada en track
+const SessionCard: React.FC<SessionCardProps> = ({ session, onDoubleClick, onDragStart, isCompact = false }) => {
   const getBorderColor = () => {
-    if (session.borderColor) {
-      return session.borderColor;
-    }
-    // Colores por defecto basados en track
-    const trackColors: Record<string, string> = {
-      'legal-ia': '#8B5CF6',     // Púrpura
-      'tecnologia': '#3B82F6',   // Azul
-      'etica': '#10B981',        // Verde
-      'practica': '#F59E0B',     // Naranja
-      'futuro': '#EF4444',       // Rojo
-    };
-    return trackColors[session.trackId] || '#6B7280'; // Gris por defecto
+    return session.borderColor || '#6B7280'; // Gris por defecto
   };
 
   const handleExportToGoogle = (e: React.MouseEvent) => {
@@ -40,7 +25,7 @@ const SessionCard: React.FC<SessionCardProps> = ({ session, tracks, onDoubleClic
     exportSelectedSessions([session], `${session.title.replace(/\s+/g, '-').toLowerCase()}.ics`);
   };
 
-  const tooltipText = `${session.title}\nPonentes: ${session.speakers.map(s => s.name).join(', ')}\nTrack: ${track.name}\nSala: ${session.room}\nEstado: ${session.status}${session.zoomLink ? '\nZoom disponible' : ''}${session.notes ? `\nNotas: ${session.notes}` : ''}\n\nClick para editar`;
+  const tooltipText = `${session.title}\nPonentes: ${session.speakers.map(s => s.name).join(', ')}\nSala: ${session.room}\nEstado: ${session.status}${session.zoomLink ? '\nZoom disponible' : ''}${session.notes ? `\nNotas: ${session.notes}` : ''}\n\nClick para editar`;
 
   if (isCompact) {
     return (

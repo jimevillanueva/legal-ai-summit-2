@@ -6,14 +6,17 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "seed:supabase": "tsx scripts/seed-supabase.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.45.4",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
+    "tsx": "^4.19.2",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }

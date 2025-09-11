@@ -7,6 +7,8 @@ import Header from './components/Header';
 import ScheduleGrid from './components/ScheduleGrid';
 import EditSessionModal from './components/EditSessionModal';
 import ImportExportModal from './components/ImportExportModal';
+import SupabaseStatus from './components/SupabaseStatus';
+import NotesPanel from './components/NotesPanel';
 import { db } from './utils/db';
 import { supabase, useSupabase } from './utils/supabaseClient';
 
@@ -15,6 +17,7 @@ const App: React.FC = () => {
   const [editingSession, setEditingSession] = useState<Session | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isImportExportModalOpen, setIsImportExportModalOpen] = useState(false);
+  const [isNotesPanelOpen, setIsNotesPanelOpen] = useState(false);
   
   console.log('App rendering, schedule:', schedule);
 
@@ -198,6 +201,12 @@ const App: React.FC = () => {
         schedule={schedule}
         onClose={() => setIsImportExportModalOpen(false)}
         onImport={handleImport}
+      />
+      <SupabaseStatus />
+      <NotesPanel 
+        isOpen={isNotesPanelOpen}
+        onToggle={() => setIsNotesPanelOpen(!isNotesPanelOpen)}
+        schedule={schedule}
       />
     </div>
   );

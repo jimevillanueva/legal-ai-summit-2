@@ -73,7 +73,7 @@ export const emailAuth = {
   },
 
   // Crear sesión local
-  createSession(user: { email: string; role: 'admin' | 'user'; name: string }): void {
+  createSession(user: { email: string; role: 'admin' | 'user'; name: string }): SessionInfo {
     const sessionInfo: SessionInfo = {
       email: user.email,
       role: user.role,
@@ -82,6 +82,7 @@ export const emailAuth = {
     };
 
     currentSession = sessionInfo;
+    return sessionInfo;
   },
 
   // Obtener sesión actual

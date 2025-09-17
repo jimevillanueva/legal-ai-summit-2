@@ -3,6 +3,7 @@ import type { Session, Speaker } from '../types';
 import { SessionStatus } from '../types';
 import { DAYS, TIMES } from '../constants';
 import { XIcon } from './icons';
+import { useAuth } from '../contexts/AuthContext';
 
 interface EditSessionModalProps {
   session: Session | null;
@@ -17,6 +18,13 @@ interface EditSessionModalProps {
 const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, onClose, onSave, onDelete, canEdit, canViewDetails }) => {
   const [formData, setFormData] = useState<Partial<Session>>({});
   const [speakersText, setSpeakersText] = useState('');
+  const { isAdmin, isUser, emailUser } = useAuth();
+
+  // Usar el contexto como fallback si las props no están correctas
+  const effectiveCanViewDetails = canViewDetails || isAdmin || isUser || !!emailUser;
+  const effectiveCanEdit = canEdit || isAdmin;
+
+
 
   useEffect(() => {
     if (session) {
@@ -88,9 +96,9 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
       >
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-blue-800 dark:text-blue-100">
-            {!canViewDetails ? 'Sesión' : (!canEdit ? 'Ver Sesión' : (session?.id ? 'Editar Sesión' : 'Agregar Sesión'))}
-            {!canViewDetails && <span className="ml-2 text-sm font-normal text-gray-500">(Inicia sesión para ver detalles)</span>}
-            {!canEdit && canViewDetails && <span className="ml-2 text-sm font-normal text-gray-500">(Solo lectura)</span>}
+            {!effectiveCanViewDetails ? 'Sesión' : (!effectiveCanEdit ? 'Ver Sesión' : (session?.id ? 'Editar Sesión' : 'Agregar Sesión'))}
+            {!effectiveCanViewDetails && <span className="ml-2 text-sm font-normal text-gray-500">(Inicia sesión para ver detalles)</span>}
+            {!effectiveCanEdit && effectiveCanViewDetails && <span className="ml-2 text-sm font-normal text-gray-500">(Solo lectura)</span>}
           </h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-800 dark:hover:text-gray-200">
             <XIcon />
@@ -107,12 +115,12 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
               value={formData.title || ''} 
               onChange={handleChange} 
               required 
-              disabled={!canEdit}
-              className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!canEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''}`} 
+              disabled={!effectiveCanEdit}
+              className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!effectiveCanEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''}`} 
             />
           </div>
           
-          {!canViewDetails && (
+          {!effectiveCanViewDetails && (
             <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-4">
               <div className="flex">
                 <div className="flex-shrink-0">
@@ -132,7 +140,7 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
             </div>
           )}
           
-          {canViewDetails && (
+          {effectiveCanViewDetails && (
             <>
               <div>
                 <label htmlFor="speakers" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -146,16 +154,16 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                   onChange={handleSpeakersChange} 
                   required 
                   rows={3}
-                  disabled={!canEdit}
+                  disabled={!effectiveCanEdit}
                   placeholder="Dr. María González, Lic. Carlos Rodríguez, Dra. Ana Martínez"
-                  className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!canEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''}`} 
+                  className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!effectiveCanEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''}`} 
                 />
                 <p className="text-xs text-gray-500 mt-1">Escribe los nombres completos separados por comas</p>
               </div>
             </>
           )}
           
-          {canViewDetails && (
+          {effectiveCanViewDetails && (
             <>
               <div>
                 <label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notas (opcional)</label>
@@ -165,9 +173,9 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                   value={formData.notes || ''} 
                   onChange={handleChange} 
                   rows={3} 
-                  disabled={!canEdit}
+                  disabled={!effectiveCanEdit}
                   placeholder="Información adicional sobre la sesión..." 
-                  className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!canEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''}`} 
+                  className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!effectiveCanEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''}`} 
                 />
               </div>
               <div>
@@ -178,15 +186,15 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                   id="zoomLink" 
                   value={formData.zoomLink || ''} 
                   onChange={handleChange} 
-                  disabled={!canEdit}
+                  disabled={!effectiveCanEdit}
                   placeholder="https://zoom.us/j/123456789"
-                  className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!canEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''}`} 
+                  className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!effectiveCanEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''}`} 
                 />
               </div>
             </>
           )}
           
-          {canViewDetails && (
+          {effectiveCanViewDetails && (
             <>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -206,7 +214,7 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
               {/* Estado oculto: todas las sesiones se guardan como Confirmadas */}
               
               {/* Solo mostrar selector de color para administradores */}
-              {canEdit && (
+              {effectiveCanEdit && (
                 <div>
                   <label htmlFor="borderColor" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Color de Línea Lateral</label>
                   <div className="flex space-x-2 items-center mt-1">
@@ -216,15 +224,15 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                       id="borderColor" 
                       value={formData.borderColor || '#6B7280'} 
                       onChange={handleChange}
-                      disabled={!canEdit}
-                      className={`w-12 h-10 rounded border border-gray-300 ${!canEdit ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+                      disabled={!effectiveCanEdit}
+                      className={`w-12 h-10 rounded border border-gray-300 ${!effectiveCanEdit ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
                     />
                     <select
                       name="borderColor"
                       onChange={handleChange}
                       value={formData.borderColor || '#6B7280'}
-                      disabled={!canEdit}
-                      className={`flex-1 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!canEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''}`}
+                      disabled={!effectiveCanEdit}
+                      className={`flex-1 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!effectiveCanEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''}`}
                     >
                       <option value="#8B5CF6">Púrpura</option>
                       <option value="#3B82F6">Azul</option>
@@ -243,7 +251,7 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
           )}
 
           {/* Sección de exportación */}
-          {canViewDetails && session?.id && (
+          {effectiveCanViewDetails && session?.id && (
             <div className="border-t border-gray-200 pt-4 space-y-3">
               <h3 className="text-sm font-medium text-gray-700">Exportar a Calendario</h3>
               <div className="flex space-x-2">
@@ -282,16 +290,16 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
           )}
 
           <div className="flex justify-between pt-4">
-            {canEdit && canViewDetails && session?.id && (
+            {effectiveCanEdit && effectiveCanViewDetails && session?.id && (
               <button type="button" onClick={handleDelete} className="inline-flex justify-center rounded-md border border-transparent bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2">
                 Eliminar
               </button>
             )}
             <div className="flex-grow"></div>
-            <button type="button" onClick={onClose} className={`${canEdit && canViewDetails ? 'mr-2' : ''} inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2`}>
-              {canEdit && canViewDetails ? 'Cancelar' : 'Cerrar'}
+            <button type="button" onClick={onClose} className={`${effectiveCanEdit && effectiveCanViewDetails ? 'mr-2' : ''} inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2`}>
+              {effectiveCanEdit && effectiveCanViewDetails ? 'Cancelar' : 'Cerrar'}
             </button>
-            {canEdit && canViewDetails && (
+            {effectiveCanEdit && effectiveCanViewDetails && (
               <button type="submit" className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
                 Guardar
               </button>

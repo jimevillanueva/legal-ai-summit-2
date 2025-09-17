@@ -8,9 +8,10 @@ interface SessionCardProps {
   onDoubleClick: (session: Session) => void;
   onDragStart: (e: React.DragEvent<HTMLDivElement>, session: Session) => void;
   isCompact?: boolean;
+  canViewDetails?: boolean;
 }
 
-const SessionCard: React.FC<SessionCardProps> = ({ session, onDoubleClick, onDragStart, isCompact = false }) => {
+const SessionCard: React.FC<SessionCardProps> = ({ session, onDoubleClick, onDragStart, isCompact = false, canViewDetails = true }) => {
   const getBorderColor = () => {
     return session.borderColor || '#6B7280'; // Gris por defecto
   };
@@ -25,7 +26,9 @@ const SessionCard: React.FC<SessionCardProps> = ({ session, onDoubleClick, onDra
     exportSelectedSessions([session], `${session.title.replace(/\s+/g, '-').toLowerCase()}.ics`);
   };
 
-  const tooltipText = `${session.title}\nPonentes: ${session.speakers.map(s => s.name).join(', ')}\nSala: ${session.room}\nEstado: ${session.status}${session.zoomLink ? '\nZoom disponible' : ''}${session.notes ? `\nNotas: ${session.notes}` : ''}\n\nClick para editar`;
+  const tooltipText = canViewDetails 
+    ? `${session.title}\nPonentes: ${session.speakers.map(s => s.name).join(', ')}\nSala: ${session.room}\nEstado: ${session.status}${session.zoomLink ? '\nZoom disponible' : ''}${session.notes ? `\nNotas: ${session.notes}` : ''}\n\nClick para ver detalles`
+    : `${session.title}\n\nInicia sesión para ver más detalles`;
 
   if (isCompact) {
     return (
@@ -52,9 +55,15 @@ const SessionCard: React.FC<SessionCardProps> = ({ session, onDoubleClick, onDra
         title={tooltipText}
       >
         <h4 className="font-medium text-xs leading-tight text-gray-900 dark:text-white truncate" style={{fontSize: '10px'}}>{session.title}</h4>
-        <p className="text-xs text-gray-400 dark:text-gray-400 leading-tight truncate" style={{fontSize: '9px'}}>
-          {session.speakers.map(s => s.name).join(', ')}
-        </p>
+        {canViewDetails ? (
+          <p className="text-xs text-gray-400 dark:text-gray-400 leading-tight truncate" style={{fontSize: '9px'}}>
+            {session.speakers.map(s => s.name).join(', ')}
+          </p>
+        ) : (
+          <p className="text-xs text-gray-500 dark:text-gray-500 leading-tight truncate italic" style={{fontSize: '9px'}}>
+            Inicia sesión para ver detalles
+          </p>
+        )}
         
         {session.hasConflict && (
           <div className="absolute top-1 right-1 text-red-500" title="Conflicto de ponentes detectado!">
@@ -93,9 +102,15 @@ const SessionCard: React.FC<SessionCardProps> = ({ session, onDoubleClick, onDra
     >
       <div>
         <h3 className="font-medium text-sm leading-tight text-gray-900 dark:text-white" style={{fontSize: '11px'}}>{session.title}</h3>
-        <p className="text-xs mt-1 text-gray-400 dark:text-gray-400 leading-tight" style={{fontSize: '10px'}}>
-          {session.speakers.map(s => s.name).join(', ')}
-        </p>
+        {canViewDetails ? (
+          <p className="text-xs mt-1 text-gray-400 dark:text-gray-400 leading-tight" style={{fontSize: '10px'}}>
+            {session.speakers.map(s => s.name).join(', ')}
+          </p>
+        ) : (
+          <p className="text-xs mt-1 text-gray-500 dark:text-gray-500 leading-tight italic" style={{fontSize: '10px'}}>
+            Inicia sesión para ver detalles
+          </p>
+        )}
       </div>
 
       {session.hasConflict && (

@@ -63,6 +63,16 @@ export const getInitialSchedule = (): Schedule => {
         }
     });
 
-    console.log('Initial schedule created:', schedule);
+    // Log detailed schedule information
+    console.log('Initial schedule created with events:');
+    Object.keys(schedule).forEach(day => {
+        Object.keys(schedule[day]).forEach(time => {
+            const sessions = schedule[day][time];
+            if (sessions.length > 0) {
+                console.log(`  ${day} ${time}:`, sessions.map(s => s.title || 'Untitled').join(', '));
+            }
+        });
+    });
+    console.log('Full schedule object:', schedule);
     return schedule;
 };

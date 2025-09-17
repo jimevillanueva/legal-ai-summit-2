@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { cleanNamesWithAI } from '../utils/aiService';
+import { useAuth } from '../contexts/AuthContext';
+import { db } from '../utils/db';
 
 interface Speaker {
   id: string;
@@ -23,32 +25,55 @@ const NotesPanel: React.FC<NotesPanelProps> = ({ isOpen, onToggle, schedule }) =
   const [rawNames, setRawNames] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [processedNames, setProcessedNames] = useState<string[]>([]);
+  
+  const { isAdmin, canEdit } = useAuth();
 
-  // Cargar datos del localStorage
+  // Cargar datos de la base de datos
   useEffect(() => {
-    const savedNotes = localStorage.getItem('eventNotes');
-    if (savedNotes) {
-      setNotes(savedNotes);
-    }
+    const loadData = async () => {
+      try {
+        // Cargar notas
+        const savedNotes = await db.loadNotes();
+        setNotes(savedNotes);
+        
+        // Solo cargar ponentes si es admin
+        if (isAdmin) {
+          const savedSpeakers = await db.loadSpeakers();
+          setSpeakers(savedSpeakers.map(s => ({ ...s, completed: false, createdAt: Date.now() })));
+        }
+      } catch (error) {
+        console.error('Error loading data from database:', error);
+      }
+    };
     
-    const savedSpeakers = localStorage.getItem('eventSpeakers');
-    if (savedSpeakers) {
-      setSpeakers(JSON.parse(savedSpeakers));
-    }
-  }, []);
+    loadData();
+  }, [isAdmin]);
 
   // Guardar notas automáticamente
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      localStorage.setItem('eventNotes', notes);
+    const timeoutId = setTimeout(async () => {
+      try {
+        await db.saveNotes(notes);
+      } catch (error) {
+        console.error('Error saving notes to database:', error);
+      }
     }, 1000);
     return () => clearTimeout(timeoutId);
   }, [notes]);
 
-  // Guardar ponentes automáticamente
+  // Guardar ponentes automáticamente (solo si es admin)
   useEffect(() => {
-    localStorage.setItem('eventSpeakers', JSON.stringify(speakers));
-  }, [speakers]);
+    if (isAdmin) {
+      const saveSpeakers = async () => {
+        try {
+          await db.saveSpeakers(speakers);
+        } catch (error) {
+          console.error('Error saving speakers to database:', error);
+        }
+      };
+      saveSpeakers();
+    }
+  }, [speakers, isAdmin]);
 
   const handleClear = () => {
     if (activeTab === 'notes') {
@@ -63,6 +88,8 @@ const NotesPanel: React.FC<NotesPanelProps> = ({ isOpen, onToggle, schedule }) =
   };
 
   const addSpeaker = () => {
+    if (!isAdmin) return;
+    
     if (newSpeaker.trim()) {
       const speaker: Speaker = {
         id: `speaker-${Date.now()}`,
@@ -76,6 +103,8 @@ const NotesPanel: React.FC<NotesPanelProps> = ({ isOpen, onToggle, schedule }) =
   };
 
   const toggleSpeaker = (speakerId: string) => {
+    if (!isAdmin) return;
+    
     setSpeakers(speakers.map(speaker => 
       speaker.id === speakerId 
         ? { ...speaker, completed: !speaker.completed }
@@ -84,13 +113,17 @@ const NotesPanel: React.FC<NotesPanelProps> = ({ isOpen, onToggle, schedule }) =
   };
 
   const deleteSpeaker = (speakerId: string) => {
+    if (!isAdmin) return;
+    
     setSpeakers(speakers.filter(speaker => speaker.id !== speakerId));
   };
 
   const completedCount = speakers.filter(s => s.completed).length;
 
-  // AI Assistant para limpiar nombres
+  // AI Assistant para limpiar nombres (solo admins)
   const processNamesWithAI = async () => {
+    if (!isAdmin) return;
+    
     setIsProcessing(true);
     setProcessedNames([]);
     
@@ -111,6 +144,8 @@ const NotesPanel: React.FC<NotesPanelProps> = ({ isOpen, onToggle, schedule }) =
   };
 
   const importProcessedNames = () => {
+    if (!isAdmin) return;
+    
     const newSpeakers = processedNames.map(name => ({
       id: `speaker-${Date.now()}-${Math.random()}`,
       name,
@@ -165,7 +200,7 @@ const NotesPanel: React.FC<NotesPanelProps> = ({ isOpen, onToggle, schedule }) =
                 </button>
               </div>
               
-              {/* Tabs */}
+              {/* Tabs - Solo mostrar ponentes si es admin */}
               <div className="flex space-x-1 mt-3">
                 <button
                   onClick={() => setActiveTab('notes')}
@@ -177,16 +212,18 @@ const NotesPanel: React.FC<NotesPanelProps> = ({ isOpen, onToggle, schedule }) =
                 >
                   📝 Notas
                 </button>
-                <button
-                  onClick={() => setActiveTab('speakers')}
-                  className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                    activeTab === 'speakers'
-                      ? 'bg-white text-blue-700'
-                      : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
-                  }`}
-                >
-                  👥 Ponentes {speakers.length > 0 && `(${completedCount}/${speakers.length})`}
-                </button>
+                {isAdmin && (
+                  <button
+                    onClick={() => setActiveTab('speakers')}
+                    className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                      activeTab === 'speakers'
+                        ? 'bg-white text-blue-700'
+                        : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
+                    }`}
+                  >
+                    👥 Ponentes {speakers.length > 0 && `(${completedCount}/${speakers.length})`}
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -209,82 +246,95 @@ const NotesPanel: React.FC<NotesPanelProps> = ({ isOpen, onToggle, schedule }) =
               </div>
             ) : (
               <div className="flex-1 p-4 flex flex-col">
-                {/* Input para nuevo ponente */}
-                <div className="mb-4">
-                  <div className="flex space-x-2">
-                    <input
-                      type="text"
-                      value={newSpeaker}
-                      onChange={(e) => setNewSpeaker(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && addSpeaker()}
-                      placeholder="Agregar nuevo ponente..."
-                      className="flex-1 px-3 py-2 border border-gray-200 rounded-md text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                    />
-                    <button
-                      onClick={addSpeaker}
-                      disabled={!newSpeaker.trim()}
-                      className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                    >
-                      ➕
-                    </button>
-                  </div>
-                  
-                  {/* Botón AI Assistant */}
-                  <button
-                    onClick={() => setIsAIModalOpen(true)}
-                    className="w-full mt-2 px-3 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-md hover:from-purple-700 hover:to-blue-700 transition-all text-sm font-medium"
-                  >
-                    🤖 Importar con IA
-                  </button>
-                </div>
-
-                {/* Lista de ponentes */}
-                <div className="flex-1 overflow-y-auto space-y-2">
-                  {speakers.length === 0 ? (
-                    <div className="text-center text-gray-500 mt-8">
-                      <p className="text-sm">Sin ponentes en la lista</p>
-                      <p className="text-xs mt-1">Agrega el primer ponente arriba</p>
+                {/* Verificar permisos */}
+                {!isAdmin ? (
+                  <div className="flex-1 flex items-center justify-center">
+                    <div className="text-center text-gray-500">
+                      <div className="text-4xl mb-4">🔒</div>
+                      <p className="text-sm font-medium">Acceso restringido</p>
+                      <p className="text-xs mt-1">Solo los administradores pueden gestionar ponentes</p>
                     </div>
-                  ) : (
-                    speakers.map((speaker) => (
-                      <div
-                        key={speaker.id}
-                        className={`group flex items-start space-x-3 p-3 rounded-lg border transition-all ${
-                          speaker.completed
-                            ? 'bg-green-50 border-green-200 opacity-75'
-                            : 'bg-white border-gray-200 hover:bg-gray-50'
-                        }`}
-                      >
+                  </div>
+                ) : (
+                  <>
+                    {/* Input para nuevo ponente */}
+                    <div className="mb-4">
+                      <div className="flex space-x-2">
+                        <input
+                          type="text"
+                          value={newSpeaker}
+                          onChange={(e) => setNewSpeaker(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && addSpeaker()}
+                          placeholder="Agregar nuevo ponente..."
+                          className="flex-1 px-3 py-2 border border-gray-200 rounded-md text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        />
                         <button
-                          onClick={() => toggleSpeaker(speaker.id)}
-                          className={`mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${
-                            speaker.completed
-                              ? 'bg-green-500 border-green-500 text-white'
-                              : 'border-gray-300 hover:border-blue-500'
-                          }`}
+                          onClick={addSpeaker}
+                          disabled={!newSpeaker.trim()}
+                          className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                         >
-                          {speaker.completed && '✓'}
-                        </button>
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-sm ${
-                            speaker.completed
-                              ? 'line-through text-gray-500'
-                              : 'text-gray-900'
-                          }`}>
-                            {speaker.name}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => deleteSpeaker(speaker.id)}
-                          className="text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 text-sm"
-                          title="Eliminar ponente"
-                        >
-                          ✕
+                          ➕
                         </button>
                       </div>
-                    ))
-                  )}
-                </div>
+                      
+                      {/* Botón AI Assistant */}
+                      <button
+                        onClick={() => setIsAIModalOpen(true)}
+                        className="w-full mt-2 px-3 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-md hover:from-purple-700 hover:to-blue-700 transition-all text-sm font-medium"
+                      >
+                        🤖 Importar con IA
+                      </button>
+                    </div>
+
+                    {/* Lista de ponentes */}
+                    <div className="flex-1 overflow-y-auto space-y-2">
+                      {speakers.length === 0 ? (
+                        <div className="text-center text-gray-500 mt-8">
+                          <p className="text-sm">Sin ponentes en la lista</p>
+                          <p className="text-xs mt-1">Agrega el primer ponente arriba</p>
+                        </div>
+                      ) : (
+                        speakers.map((speaker) => (
+                          <div
+                            key={speaker.id}
+                            className={`group flex items-start space-x-3 p-3 rounded-lg border transition-all ${
+                              speaker.completed
+                                ? 'bg-green-50 border-green-200 opacity-75'
+                                : 'bg-white border-gray-200 hover:bg-gray-50'
+                            }`}
+                          >
+                            <button
+                              onClick={() => toggleSpeaker(speaker.id)}
+                              className={`mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${
+                                speaker.completed
+                                  ? 'bg-green-500 border-green-500 text-white'
+                                  : 'border-gray-300 hover:border-blue-500'
+                              }`}
+                            >
+                              {speaker.completed && '✓'}
+                            </button>
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-sm ${
+                                speaker.completed
+                                  ? 'line-through text-gray-500'
+                                  : 'text-gray-900'
+                              }`}>
+                                {speaker.name}
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => deleteSpeaker(speaker.id)}
+                              className="text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 text-sm"
+                              title="Eliminar ponente"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -295,7 +345,9 @@ const NotesPanel: React.FC<NotesPanelProps> = ({ isOpen, onToggle, schedule }) =
               <div className="text-xs text-gray-500">
                 {activeTab === 'notes' 
                   ? (notes.length > 0 ? `${notes.length} caracteres` : 'Sin notas')
-                  : `${speakers.length} ponentes (${completedCount} confirmados)`
+                  : isAdmin 
+                    ? `${speakers.length} ponentes (${completedCount} confirmados)`
+                    : 'Acceso restringido'
                 }
               </div>
               <div className="flex space-x-2">
@@ -306,14 +358,14 @@ const NotesPanel: React.FC<NotesPanelProps> = ({ isOpen, onToggle, schedule }) =
                       : speakers.map(s => `${s.completed ? '☑️' : '☐'} ${s.name}`).join('\n')
                   )}
                   className="text-xs px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
-                  disabled={activeTab === 'notes' ? !notes : speakers.length === 0}
+                  disabled={activeTab === 'notes' ? !notes : !isAdmin || speakers.length === 0}
                 >
                   📋 Copiar
                 </button>
                 <button
                   onClick={handleClear}
                   className="text-xs px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
-                  disabled={activeTab === 'notes' ? !notes : speakers.length === 0}
+                  disabled={activeTab === 'notes' ? !notes : !isAdmin || speakers.length === 0}
                 >
                   🗑️ Borrar
                 </button>
@@ -326,8 +378,8 @@ const NotesPanel: React.FC<NotesPanelProps> = ({ isOpen, onToggle, schedule }) =
         </div>
       </div>
 
-      {/* Modal de AI Assistant */}
-      {isAIModalOpen && (
+      {/* Modal de AI Assistant - Solo para admins */}
+      {isAIModalOpen && isAdmin && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
             {/* Header del modal */}

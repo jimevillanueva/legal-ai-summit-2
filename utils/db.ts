@@ -1,6 +1,22 @@
-import type { Schedule, Session } from '../types';
+import type { Schedule, Session, Speaker } from '../types';
 import { DAYS, TIMES } from '../constants';
 import { supabase, useSupabase } from './supabaseClient';
+
+// Additional types for user data
+export interface Task {
+  id: string;
+  text: string;
+  completed: boolean;
+  createdAt: number;
+}
+
+export interface SpeakerCheck {
+  id: string;
+  name: string;
+  sessions: string[];
+  status: 'complete' | 'incomplete' | 'conflict';
+  suggestions: string[];
+}
 
 // Utilidades para transformar entre filas y tipos locales
 const rowsToSchedule = (rows: any[]): Schedule => {
@@ -72,4 +88,113 @@ export const db = {
   },
 
   // no tracks in this simplified app
+
+  // User data functions
+  // Notes
+  loadNotes: async (): Promise<string> => {
+    if (!useSupabase() || !supabase) return '';
+    
+    const { data, error } = await supabase
+      .from('event_notes')
+      .select('notes')
+      .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+      .single();
+    
+    if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows found
+    return data?.notes || '';
+  },
+
+  saveNotes: async (notes: string): Promise<void> => {
+    if (!useSupabase() || !supabase) return;
+    
+    const userId = (await supabase.auth.getUser()).data.user?.id;
+    if (!userId) throw new Error('User not authenticated');
+
+    const { error } = await supabase
+      .from('event_notes')
+      .upsert({ user_id: userId, notes }, { onConflict: 'user_id' });
+    
+    if (error) throw error;
+  },
+
+  // Speakers (admin only)
+  loadSpeakers: async (): Promise<Speaker[]> => {
+    if (!useSupabase() || !supabase) return [];
+    
+    const { data, error } = await supabase
+      .from('event_speakers')
+      .select('*')
+      .order('name');
+    
+    if (error) throw error;
+    return data?.map(s => ({ id: s.id, name: s.name })) || [];
+  },
+
+  saveSpeakers: async (speakers: Speaker[]): Promise<void> => {
+    if (!useSupabase() || !supabase) return;
+    
+    // Clear existing speakers and insert new ones
+    const { error: deleteError } = await supabase
+      .from('event_speakers')
+      .delete()
+      .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+    
+    if (deleteError) throw deleteError;
+
+    if (speakers.length > 0) {
+      const { error: insertError } = await supabase
+        .from('event_speakers')
+        .insert(speakers.map(s => ({ id: s.id, name: s.name })));
+      
+      if (insertError) throw insertError;
+    }
+  },
+
+  // Tasks
+  loadTasks: async (): Promise<Task[]> => {
+    if (!useSupabase() || !supabase) return [];
+    
+    const { data, error } = await supabase
+      .from('event_tasks')
+      .select('*')
+      .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+      .order('created_at');
+    
+    if (error) throw error;
+    return data?.map(t => ({
+      id: t.id,
+      text: t.text,
+      completed: t.completed,
+      createdAt: new Date(t.created_at).getTime()
+    })) || [];
+  },
+
+  saveTask: async (task: Task): Promise<void> => {
+    if (!useSupabase() || !supabase) return;
+    
+    const userId = (await supabase.auth.getUser()).data.user?.id;
+    if (!userId) throw new Error('User not authenticated');
+
+    const { error } = await supabase
+      .from('event_tasks')
+      .upsert({
+        id: task.id,
+        user_id: userId,
+        text: task.text,
+        completed: task.completed
+      });
+    
+    if (error) throw error;
+  },
+
+  deleteTask: async (taskId: string): Promise<void> => {
+    if (!useSupabase() || !supabase) return;
+    
+    const { error } = await supabase
+      .from('event_tasks')
+      .delete()
+      .eq('id', taskId);
+    
+    if (error) throw error;
+  }
 };

@@ -7,6 +7,12 @@ const SupabaseStatus: React.FC = () => {
 
   useEffect(() => {
     const checkConnection = async () => {
+      if (!supabase) {
+        console.log('Supabase not available');
+        setStatus('disconnected');
+        return;
+      }
+
       try {
         const { data, error } = await supabase
           .from('sessions')
@@ -21,7 +27,7 @@ const SupabaseStatus: React.FC = () => {
           setSessionCount(data?.length || 0);
         }
       } catch (e) {
-        console.log('Supabase not available, using localStorage fallback');
+        console.log('Supabase not available');
         setStatus('disconnected');
       }
     };
@@ -29,19 +35,21 @@ const SupabaseStatus: React.FC = () => {
     checkConnection();
 
     // Test real-time connection
-    const channel = supabase
-      .channel('connection-test')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'sessions' }, 
-        (payload) => {
-          console.log('📡 Real-time update received:', payload);
-        }
-      )
-      .subscribe();
+    if (supabase) {
+      const channel = supabase
+        .channel('connection-test')
+        .on('postgres_changes', 
+          { event: '*', schema: 'public', table: 'sessions' }, 
+          (payload) => {
+            console.log('📡 Real-time update received:', payload);
+          }
+        )
+        .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
   }, []);
 
   if (status === 'connecting') {
@@ -50,17 +58,6 @@ const SupabaseStatus: React.FC = () => {
         <div className="flex items-center space-x-2">
           <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
           <span className="text-sm">Conectando Supabase...</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (status === 'connected') {
-    return (
-      <div className="fixed bottom-4 right-4 bg-green-500 text-white px-3 py-2 rounded-lg shadow-lg">
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-          <span className="text-sm">📊 Supabase conectado</span>
         </div>
       </div>
     );

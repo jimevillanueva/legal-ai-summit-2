@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { db } from '../utils/db';
 
 interface Task {
   id: string;
@@ -29,30 +30,49 @@ const NotesPanel: React.FC<NotesPanelProps> = ({ isOpen, onToggle, schedule }) =
   const [speakerAnalysis, setSpeakerAnalysis] = useState<SpeakerCheck[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  // Cargar datos del localStorage
+  // Cargar datos de la base de datos
   useEffect(() => {
-    const savedNotes = localStorage.getItem('eventNotes');
-    if (savedNotes) {
-      setNotes(savedNotes);
-    }
+    const loadData = async () => {
+      try {
+        // Cargar notas
+        const savedNotes = await db.loadNotes();
+        setNotes(savedNotes);
+        
+        // Cargar tareas
+        const savedTasks = await db.loadTasks();
+        setTasks(savedTasks);
+      } catch (error) {
+        console.error('Error loading data from database:', error);
+      }
+    };
     
-    const savedTasks = localStorage.getItem('eventTasks');
-    if (savedTasks) {
-      setTasks(JSON.parse(savedTasks));
-    }
+    loadData();
   }, []);
 
   // Guardar notas automáticamente
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      localStorage.setItem('eventNotes', notes);
+    const timeoutId = setTimeout(async () => {
+      try {
+        await db.saveNotes(notes);
+      } catch (error) {
+        console.error('Error saving notes to database:', error);
+      }
     }, 1000);
     return () => clearTimeout(timeoutId);
   }, [notes]);
 
   // Guardar tareas automáticamente
   useEffect(() => {
-    localStorage.setItem('eventTasks', JSON.stringify(tasks));
+    const saveTasks = async () => {
+      try {
+        for (const task of tasks) {
+          await db.saveTask(task);
+        }
+      } catch (error) {
+        console.error('Error saving tasks to database:', error);
+      }
+    };
+    saveTasks();
   }, [tasks]);
 
   const handleClear = () => {
@@ -67,7 +87,7 @@ const NotesPanel: React.FC<NotesPanelProps> = ({ isOpen, onToggle, schedule }) =
     }
   };
 
-  const addTask = () => {
+  const addTask = async () => {
     if (newTask.trim()) {
       const task: Task = {
         id: `task-${Date.now()}`,
@@ -75,21 +95,42 @@ const NotesPanel: React.FC<NotesPanelProps> = ({ isOpen, onToggle, schedule }) =
         completed: false,
         createdAt: Date.now()
       };
-      setTasks([...tasks, task]);
-      setNewTask('');
+      try {
+        await db.saveTask(task);
+        setTasks([...tasks, task]);
+        setNewTask('');
+      } catch (error) {
+        console.error('Error saving task to database:', error);
+      }
     }
   };
 
-  const toggleTask = (taskId: string) => {
-    setTasks(tasks.map(task => 
+  const toggleTask = async (taskId: string) => {
+    const updatedTasks = tasks.map(task => 
       task.id === taskId 
         ? { ...task, completed: !task.completed }
         : task
-    ));
+    );
+    setTasks(updatedTasks);
+    
+    // Save the updated task to database
+    const taskToUpdate = updatedTasks.find(task => task.id === taskId);
+    if (taskToUpdate) {
+      try {
+        await db.saveTask(taskToUpdate);
+      } catch (error) {
+        console.error('Error updating task in database:', error);
+      }
+    }
   };
 
-  const deleteTask = (taskId: string) => {
-    setTasks(tasks.filter(task => task.id !== taskId));
+  const deleteTask = async (taskId: string) => {
+    try {
+      await db.deleteTask(taskId);
+      setTasks(tasks.filter(task => task.id !== taskId));
+    } catch (error) {
+      console.error('Error deleting task from database:', error);
+    }
   };
 
   const completedCount = tasks.filter(t => t.completed).length;

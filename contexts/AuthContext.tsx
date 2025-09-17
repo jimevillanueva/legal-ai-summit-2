@@ -20,6 +20,8 @@ interface AuthContextType {
   emailUser: SessionInfo | null;
   loginWithEmail: (email: string) => Promise<EmailAuthResult>;
   logoutEmail: () => void;
+  // Force refresh
+  refreshAuth: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -223,8 +225,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const loginWithEmail = async (email: string): Promise<EmailAuthResult> => {
     const result = await emailAuth.verifyEmail(email);
     if (result.success && result.user) {
-      emailAuth.createSession(result.user);
-      setEmailUser(result.user);
+      const sessionInfo = emailAuth.createSession(result.user);
+      setEmailUser(sessionInfo);
       // Actualizar el rol basado en el usuario de email
       if (result.user.role === 'admin') {
         setRole('admin');
@@ -247,6 +249,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsUser(false);
   };
 
+  const refreshAuth = async () => {
+    if (!supabase) return;
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        await checkUserRole(session.user);
+      } else {
+        setRole('guest');
+        setIsAdmin(false);
+        setIsUser(false);
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Error refreshing auth:', error);
+    }
+  };
+
   const value = {
     user,
     session,
@@ -262,6 +285,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     emailUser,
     loginWithEmail,
     logoutEmail,
+    // Force refresh
+    refreshAuth,
   };
 
 

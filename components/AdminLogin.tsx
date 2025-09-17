@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { supabase, useSupabase } from '../utils/supabaseClient';
+import { useAuth } from '../contexts/AuthContext';
 
 interface AdminLoginProps {
   onLoginSuccess: () => void;
@@ -11,6 +12,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onBack }) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { refreshAuth } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,10 +66,30 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onBack }) => {
         return;
       }
 
-      // Login exitoso - redirigir a la vista principal
+      
+      // Forzar actualización del contexto de autenticación
+      await refreshAuth();
+      
+      // Esperar un momento adicional para asegurar que el contexto se actualice
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       onLoginSuccess();
-      // Redirigir a la página principal después del login exitoso
-      window.location.href = '/';
+      
+      // Mostrar mensaje de éxito y redirigir
+      setError(''); // Limpiar errores
+      setLoading(false);
+      
+      // Mostrar mensaje de éxito temporal
+      const successMessage = document.createElement('div');
+      successMessage.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-md z-50';
+      successMessage.textContent = '¡Login exitoso! Redirigiendo...';
+      document.body.appendChild(successMessage);
+      
+      // Redirigir después de un momento
+      setTimeout(() => {
+        document.body.removeChild(successMessage);
+        window.location.href = '/';
+      }, 2000);
     } catch (err) {
       setError('Error inesperado durante el login');
       console.error('Login error:', err);

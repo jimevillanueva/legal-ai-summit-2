@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import type { Schedule, Session } from './types';
 import { SessionStatus } from './types';
 import { getInitialSchedule } from './constants';
@@ -11,11 +12,13 @@ import SupabaseStatus from './components/SupabaseStatus';
 import NotesPanel from './components/NotesPanel';
 import LoginView from './components/LoginView';
 import AuthCallback from './components/AuthCallback';
+import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { db } from './utils/db';
 import { supabase, useSupabase } from './utils/supabaseClient';
 
 const AppContent: React.FC = () => {
+  const location = useLocation();
   const [schedule, setSchedule] = useState<Schedule>(getInitialSchedule());
   const [editingSession, setEditingSession] = useState<Session | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -26,11 +29,16 @@ const AppContent: React.FC = () => {
   console.log('App rendering - user:', user?.email, 'role:', role, 'canEdit:', canEdit, 'canView:', canView, 'loading:', authLoading);
 
   // Verificar si estamos en la ruta de callback
-  const isAuthCallback = window.location.pathname === '/auth/callback';
+  const isAuthCallback = location.pathname === '/auth/callback';
 
   // Si estamos en la ruta de callback, mostrar el componente de callback
   if (isAuthCallback) {
     return <AuthCallback />;
+  }
+
+  // Si estamos en la ruta de admin, mostrar el componente protegido
+  if (location.pathname === '/admin') {
+    return <ProtectedRoute />;
   }
 
   // Load initial data: Supabase (si está activo y usuario autenticado) o fallback local
@@ -277,9 +285,11 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <Router>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </Router>
   );
 };
 

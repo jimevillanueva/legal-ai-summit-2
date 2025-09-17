@@ -7,12 +7,15 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "seed:supabase": "tsx scripts/seed-supabase.ts"
+    "seed:supabase": "tsx scripts/seed-supabase.ts",
+    "create-admin": "tsx scripts/create-admin-user.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",
+    "@types/react-router-dom": "^5.3.3",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-dom": "^19.1.1",
+    "react-router-dom": "^7.9.1"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

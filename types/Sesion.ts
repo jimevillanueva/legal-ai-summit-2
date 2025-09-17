@@ -1,8 +1,10 @@
 export interface Sesion {
   id: string;
   created_at: string;
-  tittle: string;
+  title: string; // Era 'tittle', ahora 'title'
   description: string;
-  date: string;
   link: string;
+  color: string;
+  time: string;
+  day: string; // Era 'date', ahora 'day'
 }

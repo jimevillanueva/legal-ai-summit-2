@@ -26,7 +26,6 @@ const AppContent: React.FC = () => {
   const [isNotesPanelOpen, setIsNotesPanelOpen] = useState(false);
   const { user, loading: authLoading, canEdit, canView, canViewDetails, role } = useAuth();
   
-  console.log('App rendering - user:', user?.email, 'role:', role, 'canEdit:', canEdit, 'canView:', canView, 'loading:', authLoading);
 
   // Verificar si estamos en la ruta de callback
   const isAuthCallback = location.pathname === '/auth/callback';
@@ -74,15 +73,14 @@ const AppContent: React.FC = () => {
         }
       }
       
-      console.log('Loading local data...');
       const hash = window.location.hash.substring(1);
       let loadedSchedule: Schedule | null = null;
       if (hash) loadedSchedule = decodeSchedule(hash);
       
       const finalSchedule = loadedSchedule || getInitialSchedule();
-      console.log('Final schedule to set:', finalSchedule);
+
       setSchedule(checkForConflicts(finalSchedule));
-      console.log('=== INIT EFFECT END ===');
+
     };
     const cleanup: any = init();
     return () => { /* channel cleanup handled in init */ };
@@ -142,7 +140,7 @@ const AppContent: React.FC = () => {
       return;
     }
     const newSession: Session = {
-      id: `s${Date.now()}`,
+      id: '',
       title: '',
       speakers: [],
       room: '',
@@ -223,7 +221,7 @@ const AppContent: React.FC = () => {
 
   // Mostrar loading mientras se verifica la autenticación (solo si no estamos en callback)
   if (authLoading && !isAuthCallback) {
-    console.log('Showing loading screen...');
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="text-center">
@@ -237,11 +235,10 @@ const AppContent: React.FC = () => {
   // Mostrar vista de login solo si se requiere autenticación para ver detalles
   // (esto se puede personalizar según las necesidades)
   if (useSupabase() && !user && canViewDetails) {
-    console.log('Showing login view - user:', !!user, 'canViewDetails:', canViewDetails);
+
     return <LoginView onAuthSuccess={() => {}} />;
   }
 
-  console.log('Showing main app...');
   return (
     <div className="h-screen w-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       <Header 

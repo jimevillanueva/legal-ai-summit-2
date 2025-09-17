@@ -3,7 +3,7 @@ import { Speaker_Sesion } from '../types/Speaker_Sesion'
 
 export const speaker_SesionService = {
 
-    async createSpeaker_Sesion(speaker_Sesion: Speaker_Sesion): Promise<Speaker_Sesion> {
+    async createSpeaker_Sesion(speaker_Sesion: Omit<Speaker_Sesion, 'id' | 'created_at'>): Promise<Speaker_Sesion> {
         try {
             const { data, error } = await supabase
                 .from('speakers_sessions')
@@ -145,6 +145,28 @@ export const speaker_SesionService = {
             return data?.map(item => item.speaker_id) || []
         } catch (err) {
             console.error('Excepción inesperada en getAllIdSpeakerBySpeakerSesionId:', err)
+            throw err
+        }
+    },
+
+    async deleteSpeakerSessionsBySessionId(sessionId: string): Promise<void> {
+        try {
+            const { error } = await supabase
+                .from('speakers_sessions')
+                .delete()
+                .eq('session_id', sessionId)
+
+            if (error) {
+                console.error('Error al eliminar relaciones speaker-session:', error.code, error.message)
+                switch (error.code) {
+                    case '42501': // permiso denegado
+                        throw new Error('No tienes permisos para eliminar relaciones speaker-sesión')
+                    default:
+                        throw new Error(`Error en la base de datos: ${error.message}`)
+                }
+            }
+        } catch (err) {
+            console.error('Excepción inesperada en deleteSpeakerSessionsBySessionId:', err)
             throw err
         }
     }

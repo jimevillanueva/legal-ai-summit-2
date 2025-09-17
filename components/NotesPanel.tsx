@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { cleanNamesWithAI } from '../utils/aiService';
 import { useAuth } from '../contexts/AuthContext';
-import { db } from '../utils/db';
 
 interface Speaker {
   id: string;
@@ -27,53 +26,6 @@ const NotesPanel: React.FC<NotesPanelProps> = ({ isOpen, onToggle, schedule }) =
   const [processedNames, setProcessedNames] = useState<string[]>([]);
   
   const { isAdmin, canEdit } = useAuth();
-
-  // Cargar datos de la base de datos
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        // Cargar notas
-        const savedNotes = await db.loadNotes();
-        setNotes(savedNotes);
-        
-        // Solo cargar ponentes si es admin
-        if (isAdmin) {
-          const savedSpeakers = await db.loadSpeakers();
-          setSpeakers(savedSpeakers.map(s => ({ ...s, completed: false, createdAt: Date.now() })));
-        }
-      } catch (error) {
-        console.error('Error loading data from database:', error);
-      }
-    };
-    
-    loadData();
-  }, [isAdmin]);
-
-  // Guardar notas automáticamente
-  useEffect(() => {
-    const timeoutId = setTimeout(async () => {
-      try {
-        await db.saveNotes(notes);
-      } catch (error) {
-        console.error('Error saving notes to database:', error);
-      }
-    }, 1000);
-    return () => clearTimeout(timeoutId);
-  }, [notes]);
-
-  // Guardar ponentes automáticamente (solo si es admin)
-  useEffect(() => {
-    if (isAdmin) {
-      const saveSpeakers = async () => {
-        try {
-          await db.saveSpeakers(speakers);
-        } catch (error) {
-          console.error('Error saving speakers to database:', error);
-        }
-      };
-      saveSpeakers();
-    }
-  }, [speakers, isAdmin]);
 
   const handleClear = () => {
     if (activeTab === 'notes') {
@@ -371,8 +323,8 @@ const NotesPanel: React.FC<NotesPanelProps> = ({ isOpen, onToggle, schedule }) =
                 </button>
               </div>
             </div>
-            <div className="text-xs text-green-600 mt-1">
-              💾 Guardado automático
+            <div className="text-xs text-gray-600 mt-1">
+              💾 Solo frontend (sin BD)
             </div>
           </div>
         </div>

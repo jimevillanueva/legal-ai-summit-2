@@ -3,12 +3,18 @@ import type { Session, Speaker } from '../types';
 import { SessionStatus } from '../types';
 import { DAYS, TIMES } from '../constants';
 import { XIcon } from './icons';
+import { event_SpeakerService } from '../services/Event_speakers';
+import { speaker_SesionService } from '../services/Speaker_SesionService';
+import { sesionService } from '../services/sesionService';
+import { Event_Speaker } from '@/types/Event_Speaker';
+import { Sesion } from '../types/Sesion';
+import { Speaker_Sesion } from '../types/Speaker_Sesion';
 
 interface EditSessionModalProps {
-  session: Session | null;
+  session: Sesion | null;  // Cambiar de Session a Sesion
   isOpen: boolean;
   onClose: () => void;
-  onSave: (session: Session) => void;
+  onSave: (session: Sesion) => void;  // Cambiar de Session a Sesion
   onDelete: (sessionId: string) => void;
   canEdit: boolean;
   canViewDetails: boolean;
@@ -17,49 +23,148 @@ interface EditSessionModalProps {
 const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, onClose, onSave, onDelete, canEdit, canViewDetails }) => {
   const [formData, setFormData] = useState<Partial<Session>>({});
   const [speakersText, setSpeakersText] = useState('');
+  const [speakers, setSpeakers] = useState<Event_Speaker[]>([]);
 
   useEffect(() => {
     if (session) {
-      setFormData(session);
-      setSpeakersText(session.speakers?.map(s => s.name).join(', ') || '');
+      obtenerSpeakers();
+      // Solo cargar speakers si la sesión tiene ID (no es nueva)
+      if (session.id) {
+        cargarSpeakersDeSesion(session.id);
+      }
+      setFormData({
+        title: session.title, // Ya no es 'tittle'
+        notes: session.description,
+        zoomLink: session.link,
+        borderColor: session.color,
+        time: session.time,
+        day: session.day
+      });
     } else {
       setFormData({});
       setSpeakersText('');
     }
   }, [session]);
 
+  const cargarSpeakersDeSesion = async (sesionId: string) => {
+    try {
+      // Obtener las relaciones speaker-session
+      const speakerSesions = await speaker_SesionService.getAllSpeaker_SesionsBySesionId(sesionId);
+      
+      // Obtener los speakers completos basados en los IDs
+      const speakerIds = speakerSesions.map(ss => ss.speaker_id);
+      const allSpeakers = await event_SpeakerService.getAllEvent_Speakers();
+      const sessionSpeakers = allSpeakers.filter(speaker => speakerIds.includes(speaker.id));
+      
+      // Actualizar formData con los speakers cargados
+      setFormData(prev => ({
+        ...prev,
+        speakers: sessionSpeakers
+      }));
+      
+      setSpeakersText(sessionSpeakers.map(s => s.name).join(', '));
+    } catch (error) {
+      console.error('Error al cargar speakers de la sesión:', error);
+    }
+  };
+
+  const obtenerSpeakers = async () => {
+    console.log("obteniendo speakers");
+    const data = await event_SpeakerService.getAllEvent_Speakers();
+    setSpeakers(data);
+    console.log(speakers);
+  }
   if (!isOpen) return null;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.currentTarget;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
-  
-  const handleSpeakersChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
-    setSpeakersText(value);
+  const handleSpeakerToggle = (speakerId: string) => {
+    const isSelected = formData.speakers?.some(s => s.id === speakerId) || false;
     
-    // Convert text to Speaker objects
-    const speakers: Speaker[] = value
-      .split(',')
-      .map(name => name.trim())
-      .filter(name => name.length > 0)
-      .map((name, index) => ({
-        id: `speaker-${Date.now()}-${index}`,
-        name
+    if (isSelected) {
+      // Quitar el speaker de la lista
+      setFormData(prev => ({
+        ...prev,
+        speakers: prev.speakers?.filter(s => s.id !== speakerId) || []
       }));
-    
-    setFormData(prev => ({ ...prev, speakers }));
+    } else {
+      // Agregar el speaker a la lista
+      const speakerToAdd = speakers.find(s => s.id === speakerId);
+      if (speakerToAdd) {
+        setFormData(prev => ({
+          ...prev,
+          speakers: [...(prev.speakers || []), speakerToAdd]
+        }));
+      }
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.title && formData.speakers && formData.day && formData.time && formData.room) {
-      const payload: Session = {
-        ...(formData as Session),
-        status: SessionStatus.CONFIRMED,
-      };
-      onSave(payload);
+    console.log('formData', formData);
+    // Solo validar campos que realmente existen en Sesion
+    if (formData.title && formData.speakers) {
+      try {
+        // Mapear SOLO los campos que existen en Sesion
+        const sesionToSave: Omit<Sesion, 'id' | 'created_at'> = {// Necesitas obtener el user_id real
+          title: formData.title, // Ya no es 'tittle'
+          description: formData.notes || '',
+          link: formData.zoomLink || '',
+          color: formData.borderColor || '#6B7280',
+          time: formData.time || '',
+          day: formData.day || ''
+        };
+
+        let sessionId: string;
+
+        if (session?.id) {
+          // Actualizar sesión existente
+          const updatedSesion = await sesionService.updateSesion({
+            ...sesionToSave,
+            id: session.id,
+            created_at: new Date().toISOString()
+          });
+          sessionId = updatedSesion.id;
+          
+          // Eliminar relaciones existentes
+          await speaker_SesionService.deleteSpeakerSessionsBySessionId(sessionId);
+        } else {
+          // Crear nueva sesión
+          const newSesion = await sesionService.createSesion(sesionToSave);
+          sessionId = newSesion.id;
+        }
+
+        // Guardar las relaciones speaker-session
+        for (const speaker of formData.speakers) {
+          const speakerSesion: Omit<Speaker_Sesion, 'id' | 'created_at'> = {
+            session_id: sessionId,
+            speaker_id: speaker.id
+          };
+          
+          await speaker_SesionService.createSpeaker_Sesion(speakerSesion);
+        }
+
+        // Preparar SOLO con los campos de Sesion (BD)
+        const sesion: Sesion = {
+          id: sessionId,
+          created_at: new Date().toISOString(),
+          title: formData.title,
+          description: formData.notes,
+          time: formData.time,
+          day: formData.day,
+          link: formData.zoomLink,
+          color: formData.borderColor 
+        };
+
+        onSave(sesion);
+        console.log('Sesión guardada exitosamente');
+      } catch (error) {
+        console.log('Error al guardar sesión:', error);
+        alert(`Error al guardar la sesión: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+      }
     } else {
       alert('Por favor completa todos los campos requeridos.');
     }
@@ -135,22 +240,69 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
           {canViewDetails && (
             <>
               <div>
-                <label htmlFor="speakers" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                   Ponentes/Participantes
-                  <span className="text-xs text-gray-500 ml-2">(separados por comas)</span>
                 </label>
-                <textarea 
-                  name="speakers" 
-                  id="speakers" 
-                  value={speakersText} 
-                  onChange={handleSpeakersChange} 
-                  required 
-                  rows={3}
-                  disabled={!canEdit}
-                  placeholder="Dr. María González, Lic. Carlos Rodríguez, Dra. Ana Martínez"
-                  className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!canEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''}`} 
-                />
-                <p className="text-xs text-gray-500 mt-1">Escribe los nombres completos separados por comas</p>
+                
+                {/* Contenedor con fondo unificado */}
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-4">
+                  
+                  {/* Lista de ponentes seleccionados - SIEMPRE VISIBLE */}
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Seleccionados:</h4>
+                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 min-h-[60px]">
+                      {formData.speakers && formData.speakers.length > 0 ? (
+                        <div className="space-y-2">
+                          {formData.speakers.map(speaker => (
+                            <div key={speaker.id} className="flex items-center justify-between bg-white dark:bg-gray-700 rounded-md px-3 py-2 shadow-sm">
+                              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{speaker.name}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleSpeakerToggle(speaker.id)}
+                                disabled={!canEdit}
+                                className="text-red-500 hover:text-red-700 dark:hover:text-red-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                <XIcon className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center h-12">
+                          <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+                            Ningún ponente fue seleccionado
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Lista de ponentes disponibles */}
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Disponibles:</h4>
+                    <div className="bg-white dark:bg-gray-700 rounded-lg p-3 max-h-40 overflow-y-auto space-y-1 border border-gray-200 dark:border-gray-600">
+                      {speakers
+                        .filter(speaker => !formData.speakers?.some(s => s.id === speaker.id))
+                        .map(speaker => (
+                          <button
+                            key={speaker.id}
+                            type="button"
+                            onClick={() => handleSpeakerToggle(speaker.id)}
+                            disabled={!canEdit}
+                            className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 hover:shadow-sm rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-transparent hover:border-gray-200 dark:hover:border-gray-500"
+                          >
+                            + {speaker.name}
+                          </button>
+                        ))}
+                      {speakers.filter(speaker => !formData.speakers?.some(s => s.id === speaker.id)).length === 0 && (
+                        <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-2">
+                          Todos los ponentes han sido seleccionados
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  
+                </div>
               </div>
             </>
           )}

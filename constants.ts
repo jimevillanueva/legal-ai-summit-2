@@ -45,7 +45,7 @@ const initialSessions: Session[] = [
 ];
 
 export const getInitialSchedule = (): Schedule => {
-    console.log('getInitialSchedule called');
+    
     const schedule: Schedule = {};
     
     // Initialize with empty arrays instead of null
@@ -64,15 +64,14 @@ export const getInitialSchedule = (): Schedule => {
     });
 
     // Log detailed schedule information
-    console.log('Initial schedule created with events:');
+ 
     Object.keys(schedule).forEach(day => {
         Object.keys(schedule[day]).forEach(time => {
             const sessions = schedule[day][time];
             if (sessions.length > 0) {
-                console.log(`  ${day} ${time}:`, sessions.map(s => s.title || 'Untitled').join(', '));
             }
         });
     });
-    console.log('Full schedule object:', schedule);
+
     return schedule;
 };

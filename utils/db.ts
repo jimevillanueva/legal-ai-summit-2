@@ -90,33 +90,6 @@ export const db = {
   // no tracks in this simplified app
 
   // User data functions
-  // Notes
-  loadNotes: async (): Promise<string> => {
-    if (!useSupabase() || !supabase) return '';
-    
-    const { data, error } = await supabase
-      .from('event_notes')
-      .select('notes')
-      .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
-      .single();
-    
-    if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows found
-    return data?.notes || '';
-  },
-
-  saveNotes: async (notes: string): Promise<void> => {
-    if (!useSupabase() || !supabase) return;
-    
-    const userId = (await supabase.auth.getUser()).data.user?.id;
-    if (!userId) throw new Error('User not authenticated');
-
-    const { error } = await supabase
-      .from('event_notes')
-      .upsert({ user_id: userId, notes }, { onConflict: 'user_id' });
-    
-    if (error) throw error;
-  },
-
   // Speakers (admin only)
   loadSpeakers: async (): Promise<Speaker[]> => {
     if (!useSupabase() || !supabase) return [];
@@ -133,18 +106,22 @@ export const db = {
   saveSpeakers: async (speakers: Speaker[]): Promise<void> => {
     if (!useSupabase() || !supabase) return;
     
-    // Clear existing speakers and insert new ones
+    // Clear existing speakers first
     const { error: deleteError } = await supabase
       .from('event_speakers')
       .delete()
-      .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+      .gt('created_at', '1900-01-01'); // Delete all records
     
     if (deleteError) throw deleteError;
 
     if (speakers.length > 0) {
+      // Insert new speakers (let Supabase generate UUIDs)
       const { error: insertError } = await supabase
         .from('event_speakers')
-        .insert(speakers.map(s => ({ id: s.id, name: s.name })));
+        .insert(speakers.map(s => ({ 
+          name: s.name,
+          // Don't include id - let Supabase auto-generate the UUID
+        })));
       
       if (insertError) throw insertError;
     }

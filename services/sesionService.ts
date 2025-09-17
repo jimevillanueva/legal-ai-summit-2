@@ -3,15 +3,17 @@ import { Sesion } from '../types/Sesion'
 
 export const sesionService = {
 
-    async createSesion(sesion: Sesion): Promise<Sesion> {
+    async createSesion(sesion: Omit<Sesion, 'id' | 'created_at'>): Promise<Sesion> {
         try {
             const { data, error } = await supabase
                 .from('sessions')
                 .insert({
-                    tittle: sesion.tittle,
+                    title: sesion.title, // Ya no es 'tittle'
                     description: sesion.description,
-                    date: sesion.date,
-                    link: sesion.link
+                    link: sesion.link,
+                    color: sesion.color,
+                    time: sesion.time,
+                    day: sesion.day // Ya no es 'date'
                 })
                 .select()
                 .single()
@@ -40,10 +42,12 @@ export const sesionService = {
             const { data, error } = await supabase
                 .from('sessions')
                 .update({
-                    tittle: sesion.tittle,
+                    title: sesion.title, // Ya no es 'tittle'
                     description: sesion.description,
-                    date: sesion.date,
-                    link: sesion.link
+                    link: sesion.link,
+                    color: sesion.color,
+                    time: sesion.time,
+                    day: sesion.day // Ya no es 'date'
                 })
                 .eq('id', sesion.id)
                 .select()

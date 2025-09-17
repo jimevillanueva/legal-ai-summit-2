@@ -1,12 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { db } from '../utils/db';
-
-interface Task {
-  id: string;
-  text: string;
-  completed: boolean;
-  createdAt: number;
-}
+import React, { useState } from 'react';
 
 interface SpeakerCheck {
   id: string;
@@ -24,123 +16,24 @@ interface NotesPanelProps {
 
 const NotesPanel: React.FC<NotesPanelProps> = ({ isOpen, onToggle, schedule }) => {
   const [notes, setNotes] = useState<string>('');
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [newTask, setNewTask] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'notes' | 'speakers'>('notes');
   const [speakerAnalysis, setSpeakerAnalysis] = useState<SpeakerCheck[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-
-  // Cargar datos de la base de datos
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        // Cargar notas
-        const savedNotes = await db.loadNotes();
-        setNotes(savedNotes);
-        
-        // Cargar tareas
-        const savedTasks = await db.loadTasks();
-        setTasks(savedTasks);
-      } catch (error) {
-        console.error('Error loading data from database:', error);
-      }
-    };
-    
-    loadData();
-  }, []);
-
-  // Guardar notas automáticamente
-  useEffect(() => {
-    const timeoutId = setTimeout(async () => {
-      try {
-        await db.saveNotes(notes);
-      } catch (error) {
-        console.error('Error saving notes to database:', error);
-      }
-    }, 1000);
-    return () => clearTimeout(timeoutId);
-  }, [notes]);
-
-  // Guardar tareas automáticamente
-  useEffect(() => {
-    const saveTasks = async () => {
-      try {
-        for (const task of tasks) {
-          await db.saveTask(task);
-        }
-      } catch (error) {
-        console.error('Error saving tasks to database:', error);
-      }
-    };
-    saveTasks();
-  }, [tasks]);
 
   const handleClear = () => {
     if (activeTab === 'notes') {
       if (window.confirm('¿Estás seguro de que quieres borrar todas las notas?')) {
         setNotes('');
       }
-    } else {
-      if (window.confirm('¿Estás seguro de que quieres borrar todas las tareas?')) {
-        setTasks([]);
-      }
     }
   };
-
-  const addTask = async () => {
-    if (newTask.trim()) {
-      const task: Task = {
-        id: `task-${Date.now()}`,
-        text: newTask.trim(),
-        completed: false,
-        createdAt: Date.now()
-      };
-      try {
-        await db.saveTask(task);
-        setTasks([...tasks, task]);
-        setNewTask('');
-      } catch (error) {
-        console.error('Error saving task to database:', error);
-      }
-    }
-  };
-
-  const toggleTask = async (taskId: string) => {
-    const updatedTasks = tasks.map(task => 
-      task.id === taskId 
-        ? { ...task, completed: !task.completed }
-        : task
-    );
-    setTasks(updatedTasks);
-    
-    // Save the updated task to database
-    const taskToUpdate = updatedTasks.find(task => task.id === taskId);
-    if (taskToUpdate) {
-      try {
-        await db.saveTask(taskToUpdate);
-      } catch (error) {
-        console.error('Error updating task in database:', error);
-      }
-    }
-  };
-
-  const deleteTask = async (taskId: string) => {
-    try {
-      await db.deleteTask(taskId);
-      setTasks(tasks.filter(task => task.id !== taskId));
-    } catch (error) {
-      console.error('Error deleting task from database:', error);
-    }
-  };
-
-  const completedCount = tasks.filter(t => t.completed).length;
 
   // AI Agent para analizar ponentes
   const analyzeSpeakers = () => {
     setIsAnalyzing(true);
     
     setTimeout(() => {
-      const allSessions = Object.values(schedule)
+      const allSessions = Object.values(schedule || {})
         .flatMap(day => Object.values(day))
         .flat();
       
@@ -195,13 +88,6 @@ const NotesPanel: React.FC<NotesPanelProps> = ({ isOpen, onToggle, schedule }) =
     }, 2000); // Simular análisis AI
   };
 
-  // Auto-analizar cuando cambie el schedule
-  useEffect(() => {
-    if (activeTab === 'speakers' && schedule) {
-      analyzeSpeakers();
-    }
-  }, [schedule, activeTab]);
-
   return (
     <>
       {/* Botón para abrir/cerrar panel */}
@@ -232,7 +118,7 @@ const NotesPanel: React.FC<NotesPanelProps> = ({ isOpen, onToggle, schedule }) =
             <div className="p-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-white">
-                  {activeTab === 'notes' ? '📝 Notas' : '✅ Tareas'}
+                  {activeTab === 'notes' ? '📝 Notas' : '✅ AI Ponentes'}
                 </h3>
                 <button
                   onClick={onToggle}
@@ -394,27 +280,23 @@ const NotesPanel: React.FC<NotesPanelProps> = ({ isOpen, onToggle, schedule }) =
               </div>
               <div className="flex space-x-2">
                 <button
-                  onClick={() => navigator.clipboard.writeText(
-                    activeTab === 'notes' 
-                      ? notes 
-                      : tasks.map(t => `${t.completed ? '☑️' : '☐'} ${t.text}`).join('\n')
-                  )}
+                  onClick={() => navigator.clipboard.writeText(notes)}
                   className="text-xs px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
-                  disabled={activeTab === 'notes' ? !notes : tasks.length === 0}
+                  disabled={activeTab !== 'notes' || !notes}
                 >
                   📋 Copiar
                 </button>
                 <button
                   onClick={handleClear}
                   className="text-xs px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
-                  disabled={activeTab === 'notes' ? !notes : tasks.length === 0}
+                  disabled={activeTab !== 'notes' || !notes}
                 >
                   🗑️ Borrar
                 </button>
               </div>
             </div>
-            <div className="text-xs text-green-600 mt-1">
-              💾 Guardado automático
+            <div className="text-xs text-gray-600 mt-1">
+              💾 Solo frontend (sin BD)
             </div>
           </div>
         </div>

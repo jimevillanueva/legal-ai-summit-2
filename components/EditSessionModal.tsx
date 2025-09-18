@@ -21,8 +21,19 @@ interface EditSessionModalProps {
   canViewDetails: boolean;
 }
 
+// Cambiar el tipo de formData
+interface FormData {
+  title?: string;
+  notes?: string;
+  zoomLink?: string;
+  borderColor?: string;
+  time?: string;
+  day?: string;
+  speakers?: Event_Speaker[]; // Usar Event_Speaker en lugar de Speaker
+}
+
 const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, onClose, onSave, onDelete, canEdit, canViewDetails }) => {
-  const [formData, setFormData] = useState<Partial<Session>>({});
+  const [formData, setFormData] = useState<FormData>({}); // Cambiar tipo
   const [speakersText, setSpeakersText] = useState('');
   const [speakers, setSpeakers] = useState<Event_Speaker[]>([]);
   const { isAdmin, isUser, emailUser } = useAuth();
@@ -54,6 +65,11 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
     }
   }, [session]);
 
+  useEffect(() => {
+    console.log("formData.speakers:", formData.speakers);
+    console.log("Tipo de primer speaker:", formData.speakers?.[0]);
+  }, [formData.speakers]);
+
   const cargarSpeakersDeSesion = async (sesionId: string) => {
     try {
       // Obtener las relaciones speaker-session
@@ -64,13 +80,15 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
       const allSpeakers = await event_SpeakerService.getAllEvent_Speakers();
       const sessionSpeakers = allSpeakers.filter(speaker => speakerIds.includes(speaker.id));
       
-      // Actualizar formData con los speakers cargados
+      // IMPORTANTE: Actualizar formData con los speakers cargados
       setFormData(prev => ({
         ...prev,
-        speakers: sessionSpeakers
+        speakers: sessionSpeakers // Ahora sessionSpeakers son Event_Speaker[]
       }));
       
       setSpeakersText(sessionSpeakers.map(s => s.name).join(', '));
+      
+      console.log("Speakers cargados para la sesión:", sessionSpeakers);
     } catch (error) {
       console.error('Error al cargar speakers de la sesión:', error);
     }
@@ -80,8 +98,37 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
     console.log("obteniendo speakers");
     const data = await event_SpeakerService.getAllEvent_Speakers();
     setSpeakers(data);
-    console.log(speakers);
+    console.log("=== SPEAKERS DATA ===");
+    console.log("Speakers completos:", data);
+    data.forEach((speaker, index) => {
+      console.log(`Speaker ${index}:`, {
+        id: speaker.id,
+        name: speaker.name,
+        company: speaker.company,
+        position: speaker.position,
+        linkedin: speaker.linkedin,
+        photo: speaker.photo
+      });
+    });
+    console.log("=====================");
   }
+
+  // También agregar log en formData.speakers
+  useEffect(() => {
+    console.log("=== FORM DATA SPEAKERS ===");
+    console.log("formData.speakers:", formData.speakers);
+    formData.speakers?.forEach((speaker, index) => {
+      console.log(`FormData Speaker ${index}:`, {
+        id: speaker.id,
+        name: speaker.name,
+        company: speaker.company,
+        position: speaker.position,
+        linkedin: speaker.linkedin,
+        photo: speaker.photo
+      });
+    });
+    console.log("========================");
+  }, [formData.speakers]);
   if (!isOpen) return null;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -117,8 +164,8 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
     if (formData.title && formData.speakers) {
       try {
         // Mapear SOLO los campos que existen en Sesion
-        const sesionToSave: Omit<Sesion, 'id' | 'created_at'> = {// Necesitas obtener el user_id real
-          title: formData.title, // Ya no es 'tittle'
+        const sesionToSave: Omit<Sesion, 'id' | 'created_at'> = {
+          title: formData.title,
           description: formData.notes || '',
           link: formData.zoomLink || '',
           color: formData.borderColor || '#6B7280',
@@ -210,254 +257,348 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Título de la Sesión</label>
-            <input 
-              type="text" 
-              name="title" 
-              id="title" 
-              value={formData.title || ''} 
-              onChange={handleChange} 
-              required 
-              disabled={!effectiveCanEdit}
-              className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!effectiveCanEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''}`} 
-            />
-          </div>
-          
-          {!effectiveCanViewDetails && (
-            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.725-1.36 3.49 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
+        {canViewDetails && !effectiveCanEdit ? (
+          // Vista de solo lectura para usuarios registrados
+          <div className="space-y-6">
+            {/* Título */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                {formData.title || 'Sin título'}
+              </h3>
+              <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex items-center gap-1">
+                  <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                  <span>{formData.day || 'Día no definido'}</span>
                 </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-                    Información limitada
-                  </h3>
-                  <div className="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
-                    <p>Para ver todos los detalles de esta sesión (ponentes, sala, enlaces, notas), necesitas iniciar sesión con un enlace autorizado.</p>
-                  </div>
+                <div className="flex items-center gap-1">
+                  <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                  <span>{formData.time || 'Hora no definida'}</span>
                 </div>
               </div>
             </div>
-          )}
-          
-          {effectiveCanViewDetails && (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                  Ponentes/Participantes
-                </label>
-                
-                {/* Contenedor con fondo unificado */}
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-4">
-                  
-                  {/* Lista de ponentes seleccionados - SIEMPRE VISIBLE */}
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Seleccionados:</h4>
-                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 min-h-[60px]">
-                      {formData.speakers && formData.speakers.length > 0 ? (
-                        <div className="space-y-2">
-                          {formData.speakers.map(speaker => (
-                            <div key={speaker.id} className="flex items-center justify-between bg-white dark:bg-gray-700 rounded-md px-3 py-2 shadow-sm">
-                              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{speaker.name}</span>
-                              <button
-                                type="button"
-                                onClick={() => handleSpeakerToggle(speaker.id)}
-                                disabled={!canEdit}
-                                className="text-red-500 hover:text-red-700 dark:hover:text-red-400 disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                <XIcon className="w-4 h-4" />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-center h-12">
-                          <p className="text-sm text-gray-500 dark:text-gray-400 italic">
-                            Ningún ponente fue seleccionado
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
 
-                  {/* Lista de ponentes disponibles */}
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Disponibles:</h4>
-                    <div className="bg-white dark:bg-gray-700 rounded-lg p-3 max-h-40 overflow-y-auto space-y-1 border border-gray-200 dark:border-gray-600">
-                      {speakers
-                        .filter(speaker => !formData.speakers?.some(s => s.id === speaker.id))
-                        .map(speaker => (
-                          <button
-                            key={speaker.id}
-                            type="button"
-                            onClick={() => handleSpeakerToggle(speaker.id)}
-                            disabled={!canEdit}
-                            className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 hover:shadow-sm rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-transparent hover:border-gray-200 dark:hover:border-gray-500"
+            {/* Ponentes */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                <span className="w-4 h-4 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
+                  👥
+                </span>
+                Ponentes/Participantes
+              </h4>
+              
+              {formData.speakers && formData.speakers.length > 0 ? (
+                <div className="space-y-3">
+                  {formData.speakers.map(speaker => (
+                    <div key={speaker.id} className="flex items-start gap-4 p-4 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-700/50 dark:to-blue-900/20 rounded-lg border border-gray-100 dark:border-gray-600">
+                      {/* Avatar con foto real o inicial */}
+                      <div className="flex-shrink-0">
+                        {speaker.photo ? (
+                          <img 
+                            src={speaker.photo} 
+                            alt={speaker.name}
+                            className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-md"
+                            onError={(e) => {
+                              // Si falla la imagen, mostrar inicial
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              target.nextElementSibling!.classList.remove('hidden');
+                            }}
+                          />
+                        ) : null}
+                        <div className={`w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md ${speaker.photo ? 'hidden' : ''}`}>
+                          {speaker.name.charAt(0).toUpperCase()}
+                        </div>
+                      </div>
+                      
+                      {/* Información del ponente */}
+                      <div className="flex-1 min-w-0">
+                        <h5 className="font-semibold text-gray-900 dark:text-gray-100 text-lg">
+                          {speaker.name}
+                        </h5>
+                        
+                        {speaker.position && (
+                          <p className="text-sm text-blue-600 dark:text-blue-400 font-medium mt-1">
+                            {speaker.position}
+                          </p>
+                        )}
+                        
+                        {speaker.company && (
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            {speaker.company}
+                          </p>
+                        )}
+                        
+                        {speaker.linkedin && (
+                          <a 
+                            href={speaker.linkedin}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 mt-3 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-full hover:bg-blue-700 transition-colors"
                           >
-                            + {speaker.name}
-                          </button>
-                        ))}
-                      {speakers.filter(speaker => !formData.speakers?.some(s => s.id === speaker.id)).length === 0 && (
-                        <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-2">
-                          Todos los ponentes han sido seleccionados
-                        </p>
-                      )}
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                            </svg>
+                            LinkedIn
+                          </a>
+                        )}
+                      </div>
                     </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <span className="text-2xl">👥</span>
                   </div>
-                  
-                </div>
-              </div>
-            </>
-          )}
-          
-          {effectiveCanViewDetails && (
-            <>
-              <div>
-                <label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notas (opcional)</label>
-                <textarea 
-                  name="notes" 
-                  id="notes" 
-                  value={formData.notes || ''} 
-                  onChange={handleChange} 
-                  rows={3} 
-                  disabled={!effectiveCanEdit}
-                  placeholder="Información adicional sobre la sesión..." 
-                  className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!effectiveCanEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''}`} 
-                />
-              </div>
-              <div>
-                <label htmlFor="zoomLink" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Enlace de Zoom (opcional)</label>
-                <input 
-                  type="url" 
-                  name="zoomLink" 
-                  id="zoomLink" 
-                  value={formData.zoomLink || ''} 
-                  onChange={handleChange} 
-                  disabled={!effectiveCanEdit}
-                  placeholder="https://zoom.us/j/123456789"
-                  className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!effectiveCanEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''}`} 
-                />
-              </div>
-            </>
-          )}
-          
-          {effectiveCanViewDetails && (
-            <>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="day" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Día</label>
-                  <select name="day" id="day" value={formData.day || ''} onChange={handleChange} disabled className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm opacity-70">
-                    {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="time" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Hora</label>
-                  <select name="time" id="time" value={formData.time || ''} onChange={handleChange} disabled className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm opacity-70">
-                    {TIMES.map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                </div>
-              </div>
-              
-              {/* Estado oculto: todas las sesiones se guardan como Confirmadas */}
-              
-              {/* Solo mostrar selector de color para administradores */}
-              {effectiveCanEdit && (
-                <div>
-                  <label htmlFor="borderColor" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Color de Línea Lateral</label>
-                  <div className="flex space-x-2 items-center mt-1">
-                    <input 
-                      type="color" 
-                      name="borderColor" 
-                      id="borderColor" 
-                      value={formData.borderColor || '#6B7280'} 
-                      onChange={handleChange}
-                      disabled={!effectiveCanEdit}
-                      className={`w-12 h-10 rounded border border-gray-300 ${!effectiveCanEdit ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
-                    />
-                    <select
-                      name="borderColor"
-                      onChange={handleChange}
-                      value={formData.borderColor || '#6B7280'}
-                      disabled={!effectiveCanEdit}
-                      className={`flex-1 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!effectiveCanEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''}`}
-                    >
-                      <option value="#8B5CF6">Púrpura</option>
-                      <option value="#3B82F6">Azul</option>
-                      <option value="#10B981">Verde</option>
-                      <option value="#F59E0B">Naranja</option>
-                      <option value="#EF4444">Rojo</option>
-                      <option value="#EC4899">Rosa</option>
-                      <option value="#8B5A00">Marrón</option>
-                      <option value="#6B7280">Gris</option>
-                    </select>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">Selecciona un color o usa el selector personalizado</p>
+                  <p className="text-lg font-medium">No hay ponentes asignados</p>
+                  <p className="text-sm">Esta sesión aún no tiene ponentes confirmados</p>
                 </div>
               )}
-            </>
-          )}
-
-          {/* Sección de exportación */}
-          {effectiveCanViewDetails && session?.id && (
-            <div className="border-t border-gray-200 pt-4 space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Exportar a Calendario</h3>
-              <div className="flex space-x-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const session = formData as Session;
-                    const startDate = `${session.day}T${session.time}:00`;
-                    const endDate = `${session.day}T${parseInt(session.time.split(':')[0]) + 1}:${session.time.split(':')[1]}:00`;
-                    const speakers = session.speakers?.map(s => s.name).join(', ') || '';
-                    const googleURL = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(session.title)}&dates=${startDate.replace(/[^\d]/g, '')}/${endDate.replace(/[^\d]/g, '')}&details=${encodeURIComponent(`Ponentes: ${speakers}\nSala: ${session.room}`)}&location=${encodeURIComponent(session.room)}&ctz=America/Mexico_City`;
-                    window.open(googleURL, '_blank');
-                  }}
-                  className="flex items-center space-x-2 px-4 py-2 bg-white hover:bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-700 hover:text-gray-900 transition-colors"
-                >
-                  <img src="/logos/google.svg" alt="Google" className="w-4 h-4" />
-                  <span>Google Calendar</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const session = formData as Session;
-                    // Trigger Apple Calendar download
-                    const speakers = session.speakers?.map(s => s.name).join(', ') || '';
-                    const filename = `${session.title.replace(/\s+/g, '-').toLowerCase()}.ics`;
-                    // Here you would call the ICS download function
-                    alert(`Descargando ${filename} para Apple Calendar`);
-                  }}
-                  className="flex items-center space-x-2 px-4 py-2 bg-white hover:bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-700 hover:text-gray-900 transition-colors"
-                >
-                  <img src="/logos/apple.svg" alt="Apple" className="w-4 h-4" />
-                  <span>Apple Calendar</span>
-                </button>
-              </div>
             </div>
-          )}
 
-          <div className="flex justify-between pt-4">
-            {effectiveCanEdit && effectiveCanViewDetails && session?.id && (
-              <button type="button" onClick={handleDelete} className="inline-flex justify-center rounded-md border border-transparent bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2">
-                Eliminar
+            {/* Información adicional - Zoom arriba, Notas abajo */}
+            <div className="space-y-4">
+              {/* Enlace de Zoom */}
+              {formData.zoomLink && (
+                <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
+                  <h4 className="text-sm font-medium text-green-800 dark:text-green-200 mb-3 flex items-center gap-2">
+                    <span className="text-lg">🔗</span>
+                    Enlace de Zoom
+                  </h4>
+                  <a 
+                    href={formData.zoomLink} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors shadow-md"
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M19.777 4.430l1.4-.933A1 1 0 0122 4.5v15a1 1 0 01-1.625 1.003l-1.4-.934A1 1 0 0119.777 19.5V4.5z"/>
+                      <rect x="2" y="6" width="16" height="12" rx="2" fill="currentColor"/>
+                    </svg>
+                    Unirse a la reunión
+                  </a>
+                </div>
+              )}
+
+              {/* Notas */}
+              {formData.notes && (
+                <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 border border-amber-200 dark:border-amber-800">
+                  <h4 className="text-sm font-medium text-amber-800 dark:text-amber-200 mb-3 flex items-center gap-2">
+                    <span className="text-lg">📝</span>
+                    Notas
+                  </h4>
+                  <div className="bg-white dark:bg-amber-900/10 rounded-md p-3 border">
+                    <p className="text-sm text-amber-900 dark:text-amber-100 leading-relaxed whitespace-pre-wrap">
+                      {formData.notes}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            
+
+            {/* Botones para vista de solo lectura */}
+            <div className="flex justify-end pt-4">
+              <button type="button" onClick={onClose} className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+                Cerrar
               </button>
-            )}
-            <div className="flex-grow"></div>
-            <button type="button" onClick={onClose} className={`${effectiveCanEdit && effectiveCanViewDetails ? 'mr-2' : ''} inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2`}>
-              {effectiveCanEdit && effectiveCanViewDetails ? 'Cancelar' : 'Cerrar'}
-            </button>
-            {effectiveCanEdit && effectiveCanViewDetails && (
-              <button type="submit" className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
-                Guardar
-              </button>
-            )}
+            </div>
           </div>
-        </form>
+        ) : (
+          // Vista de formulario para edición
+          <>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Título de la Sesión</label>
+                <input 
+                  type="text" 
+                  name="title" 
+                  id="title" 
+                  value={formData.title || ''} 
+                  onChange={handleChange} 
+                  required 
+                  disabled={!effectiveCanEdit}
+                  className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!effectiveCanEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''}`} 
+                />
+              </div>
+              
+              {effectiveCanViewDetails && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                      Ponentes/Participantes
+                    </label>
+                    
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-4">
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Seleccionados:</h4>
+                        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 min-h-[60px]">
+                          {formData.speakers && formData.speakers.length > 0 ? (
+                            <div className="space-y-2">
+                              {formData.speakers.map(speaker => (
+                                <div key={speaker.id} className="flex items-center justify-between bg-white dark:bg-gray-700 rounded-md px-3 py-2 shadow-sm">
+                                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{speaker.name}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSpeakerToggle(speaker.id)}
+                                    disabled={!effectiveCanEdit}
+                                    className="text-red-500 hover:text-red-700 dark:hover:text-red-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  >
+                                    <XIcon className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-center h-12">
+                              <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+                                Ningún ponente fue seleccionado
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Disponibles:</h4>
+                        <div className="bg-white dark:bg-gray-700 rounded-lg p-3 max-h-40 overflow-y-auto space-y-1 border border-gray-200 dark:border-gray-600">
+                          {speakers
+                            .filter(speaker => !formData.speakers?.some(s => s.id === speaker.id))
+                            .map(speaker => (
+                              <button
+                                key={speaker.id}
+                                type="button"
+                                onClick={() => handleSpeakerToggle(speaker.id)}
+                                disabled={!effectiveCanEdit}
+                                className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 hover:shadow-sm rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-transparent hover:border-gray-200 dark:hover:border-gray-500"
+                              >
+                                + {speaker.name}
+                              </button>
+                            ))}
+                          {speakers.filter(speaker => !formData.speakers?.some(s => s.id === speaker.id)).length === 0 && (
+                            <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-2">
+                              Todos los ponentes han sido seleccionados
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notas (opcional)</label>
+                    <textarea 
+                      name="notes" 
+                      id="notes" 
+                      value={formData.notes || ''} 
+                      onChange={handleChange} 
+                      rows={3} 
+                      disabled={!effectiveCanEdit}
+                      placeholder="Información adicional sobre la sesión..." 
+                      className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!effectiveCanEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''}`} 
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="zoomLink" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Enlace de Zoom (opcional)</label>
+                    <input 
+                      type="url" 
+                      name="zoomLink" 
+                      id="zoomLink" 
+                      value={formData.zoomLink || ''} 
+                      onChange={handleChange} 
+                      disabled={!effectiveCanEdit}
+                      placeholder="https://zoom.us/j/123456789"
+                      className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!effectiveCanEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''}`} 
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="day" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Día</label>
+                      <select 
+                        name="day" 
+                        id="day" 
+                        value={formData.day || ''} 
+                        onChange={handleChange} 
+                        disabled={!effectiveCanEdit}
+                        className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!effectiveCanEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed opacity-70' : ''}`}
+                      >
+                        <option value="">Selecciona un día</option>
+                        {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor="time" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Hora</label>
+                      <select 
+                        name="time" 
+                        id="time" 
+                        value={formData.time || ''} 
+                        onChange={handleChange} 
+                        disabled={!effectiveCanEdit}
+                        className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!effectiveCanEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed opacity-70' : ''}`}
+                      >
+                        <option value="">Selecciona una hora</option>
+                        {TIMES.map(t => <option key={t} value={t}>{t}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  
+                  {effectiveCanEdit && (
+                    <div>
+                      <label htmlFor="borderColor" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Color de Línea Lateral</label>
+                      <div className="flex space-x-2 items-center mt-1">
+                        <input 
+                          type="color" 
+                          name="borderColor" 
+                          id="borderColor" 
+                          value={formData.borderColor || '#6B7280'} 
+                          onChange={handleChange}
+                          disabled={!effectiveCanEdit}
+                          className={`w-12 h-10 rounded border border-gray-300 ${!effectiveCanEdit ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+                        />
+                        <select
+                          name="borderColor"
+                          onChange={handleChange}
+                          value={formData.borderColor || '#6B7280'}
+                          disabled={!effectiveCanEdit}
+                          className={`flex-1 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!effectiveCanEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''}`}
+                        >
+                          <option value="#8B5CF6">Púrpura</option>
+                          <option value="#3B82F6">Azul</option>
+                          <option value="#10B981">Verde</option>
+                          <option value="#F59E0B">Naranja</option>
+                          <option value="#EF4444">Rojo</option>
+                          <option value="#EC4899">Rosa</option>
+                          <option value="#8B5A00">Marrón</option>
+                          <option value="#6B7280">Gris</option>
+                        </select>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">Selecciona un color o usa el selector personalizado</p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              <div className="flex justify-between pt-4">
+                {effectiveCanEdit && effectiveCanViewDetails && session?.id && (
+                  <button type="button" onClick={handleDelete} className="inline-flex justify-center rounded-md border border-transparent bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2">
+                    Eliminar
+                  </button>
+                )}
+                <div className="flex-grow"></div>
+                <button type="button" onClick={onClose} className={`${effectiveCanEdit && effectiveCanViewDetails ? 'mr-2' : ''} inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2`}>
+                  {effectiveCanEdit && effectiveCanViewDetails ? 'Cancelar' : 'Cerrar'}
+                </button>
+                {effectiveCanEdit && effectiveCanViewDetails && (
+                  <button type="submit" className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+                    Guardar
+                  </button>
+                )}
+              </div>
+            </form>
+          </>
+        )}
       </div>
     </div>
   );

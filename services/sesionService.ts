@@ -8,12 +8,12 @@ export const sesionService = {
             const { data, error } = await supabase
                 .from('sessions')
                 .insert({
-                    title: sesion.title, // Ya no es 'tittle'
+                    title: sesion.title,
                     description: sesion.description,
                     link: sesion.link,
                     color: sesion.color,
                     time: sesion.time,
-                    day: sesion.day // Ya no es 'date'
+                    day: sesion.day
                 })
                 .select()
                 .single()
@@ -42,12 +42,12 @@ export const sesionService = {
             const { data, error } = await supabase
                 .from('sessions')
                 .update({
-                    title: sesion.title, // Ya no es 'tittle'
+                    title: sesion.title,
                     description: sesion.description,
                     link: sesion.link,
                     color: sesion.color,
                     time: sesion.time,
-                    day: sesion.day // Ya no es 'date'
+                    day: sesion.day
                 })
                 .eq('id', sesion.id)
                 .select()

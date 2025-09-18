@@ -1,20 +1,122 @@
-import React from 'react';
-import type { Schedule, Session } from '../types';
+import React, { useState, useEffect } from 'react';
+import { Sesion } from '../types/Sesion';
+import { sesionService } from '../services/sesionService';
 import { DAYS, TIMES } from '../constants';
 import SessionCard from './SessionCard';
 import { PlusIcon } from './icons';
+import { speaker_SesionService } from '../services/Speaker_SesionService';
+import { event_SpeakerService } from '../services/Event_speakers';
+import { Event_Speaker } from '../types/Event_Speaker';
 
 interface ScheduleGridProps {
-  schedule: Schedule;
   onSessionDrop: (sessionId: string, newDay: string, newTime: string) => void;
-  onEditSession: (session: Session) => void;
+  onEditSession: (session: Sesion) => void;
   onAddSession: (day: string, time: string) => void;
   canEdit: boolean;
   canViewDetails: boolean;
 }
 
-const ScheduleGrid: React.FC<ScheduleGridProps> = ({ schedule, onSessionDrop, onEditSession, onAddSession, canEdit, canViewDetails }) => {
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, session: Session) => {
+const ScheduleGrid: React.FC<ScheduleGridProps> = ({ onSessionDrop, onEditSession, onAddSession, canEdit, canViewDetails }) => {
+  const [sesiones, setSesiones] = useState<Sesion[]>([]);
+  const [sessionSpeakers, setSessionSpeakers] = useState<Record<string, Event_Speaker[]>>({});
+  const [loading, setLoading] = useState(true);
+
+  const normalizarSesion = (s: any) => {
+    const dayNormalizado = new Date(s.day).toISOString().split("T")[0];
+    const timeNormalizado = s.time; // Ya viene en formato correcto "8:00"
+    
+    console.log(`Normalizando - Original day: ${s.day}, Normalizado: ${dayNormalizado}`);
+    console.log(`Normalizando - Original time: ${s.time}, Normalizado: ${timeNormalizado}`);
+    
+    return {
+      ...s,
+      day: dayNormalizado,
+      time: timeNormalizado
+    };
+  };
+
+  // Función para cargar todas las sesiones
+  const cargarTodasLasSesiones = async () => {
+    try {
+      setLoading(true);
+      const rawData = await sesionService.getAllSesions();
+      console.log("Datos raw de BD:", rawData);
+      
+      const data = rawData.map(normalizarSesion);
+      setSesiones(data);
+      
+      console.log("Sesiones normalizadas:", data);
+      console.log("DAYS disponibles:", DAYS);
+      console.log("TIMES disponibles:", TIMES);
+      
+      // Después de cargar sesiones, cargar sus speakers
+      await cargarSpeakersParaSesiones(data);
+    } catch (error) {
+      console.error('Error al cargar sesiones:', error);
+      setSesiones([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Función para cargar speakers de todas las sesiones
+  const cargarSpeakersParaSesiones = async (sesiones: Sesion[]) => {
+    try {
+      const allSpeakers = await event_SpeakerService.getAllEvent_Speakers();
+      const speakersMap: Record<string, Event_Speaker[]> = {};
+
+      for (const sesion of sesiones) {
+        // Cargar speakers de cada sesión
+        const speakerSesions = await speaker_SesionService.getAllSpeaker_SesionsBySesionId(sesion.id);
+        const speakerIds = speakerSesions.map(ss => ss.speaker_id);
+        const sessionSpeakersData = allSpeakers.filter(speaker => speakerIds.includes(speaker.id));
+        speakersMap[sesion.id] = sessionSpeakersData;
+      }
+
+      setSessionSpeakers(speakersMap);
+    } catch (error) {
+      console.error('Error al cargar speakers:', error);
+    }
+  };
+
+  // Organizar sesiones por día y hora para el grid
+  const organizarSesionesPorDiaYHora = () => {
+    const schedule: Record<string, Record<string, Sesion[]>> = {};
+    
+    // Inicializar estructura vacía
+    DAYS.forEach(day => {
+      schedule[day] = {};
+      TIMES.forEach(time => {
+        schedule[day][time] = [];
+      });
+    });
+
+    console.log("Estructura inicial del schedule:", schedule);
+
+    // Llenar con las sesiones
+    sesiones.forEach(sesion => {
+      console.log(`Intentando ubicar sesión: ${sesion.title} en día: ${sesion.day}, hora: ${sesion.time}`);
+      
+      if (schedule[sesion.day] && schedule[sesion.day][sesion.time]) {
+        schedule[sesion.day][sesion.time].push(sesion);
+        console.log(`✅ Sesión ubicada en ${sesion.day} ${sesion.time}`);
+      } else {
+        console.log(`❌ No se pudo ubicar sesión en día: ${sesion.day}, hora: ${sesion.time}`);
+        console.log(`Día existe: ${!!schedule[sesion.day]}`);
+        console.log(`Hora existe: ${schedule[sesion.day] ? !!schedule[sesion.day][sesion.time] : false}`);
+      }
+    });
+
+    console.log("Schedule final organizado:", schedule);
+    return schedule;
+  };
+
+  useEffect(() => {
+    cargarTodasLasSesiones();
+
+  }, []);
+
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, session: Sesion) => {
     e.dataTransfer.setData('sessionId', session.id);
   };
 
@@ -44,6 +146,19 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({ schedule, onSessionDrop, on
     return new Intl.DateTimeFormat('es-ES', { weekday: 'long', month: 'short', day: 'numeric' }).format(date);
   };
 
+  if (loading) {
+    return (
+      <div className="flex-grow p-4 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando sesiones...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const schedule = organizarSesionesPorDiaYHora();
+
   return (
     <div className="flex-grow p-4 overflow-auto">
       <div className="grid grid-cols-[100px_repeat(5,1fr)] gap-1">
@@ -61,7 +176,7 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({ schedule, onSessionDrop, on
             </div>
             {DAYS.map(day => {
               const sessions = schedule[day]?.[time] ?? [];
-              const maxSessionsPerSlot = 4; // Limit to avoid overcrowding
+              const maxSessionsPerSlot = 4;
               
               return (
                 <div
@@ -78,6 +193,7 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({ schedule, onSessionDrop, on
                           <div key={session.id} className="relative">
                             <SessionCard 
                               session={session}
+                              speakers={sessionSpeakers[session.id] || []}
                               onDoubleClick={onEditSession}
                               onDragStart={handleDragStart}
                               isCompact={sessions.length > 1}

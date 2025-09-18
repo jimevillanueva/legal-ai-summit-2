@@ -106,9 +106,20 @@ export const downloadICSFile = (schedule: Schedule, filename: string = 'cumbre-i
 };
 
 // Export individual session to Google Calendar
-export const exportToGoogleCalendar = (session: Session): void => {
-  const url = generateGoogleCalendarURL(session);
-  window.open(url, '_blank');
+export const exportToGoogleCalendar = (session: Session, speakers: any[]) => {
+  const speakerNames = speakers.map(s => s.name).join(', ');
+  const startDate = formatDateForICS(session.day, session.time);
+  const endDate = addOneHour(session.day, session.time);
+  
+  const googleURL = new URL('https://calendar.google.com/calendar/render');
+  googleURL.searchParams.set('action', 'TEMPLATE');
+  googleURL.searchParams.set('text', session.title);
+  googleURL.searchParams.set('dates', `${startDate}/${endDate}`);
+  googleURL.searchParams.set('details', `Ponentes: ${speakerNames}\nSala: ${session.room}`);
+  googleURL.searchParams.set('location', session.room);
+  googleURL.searchParams.set('ctz', 'America/Mexico_City');
+  
+  return googleURL.toString();
 };
 
 // Export all confirmed sessions to Apple Calendar

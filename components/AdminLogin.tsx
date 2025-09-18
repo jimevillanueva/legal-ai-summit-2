@@ -44,7 +44,6 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onBack }) => {
         setLoading(false);
         return;
       }
-      console.log('data.user', data.user);
       // Verificar si el usuario es admin en user_profiles
       const { data: profileData, error: profileError } = await supabase
         .from('user_profiles')

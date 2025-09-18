@@ -26,7 +26,6 @@ const AppContent: React.FC = () => {
   const [isNotesPanelOpen, setIsNotesPanelOpen] = useState(false);
   const { user, loading: authLoading, canEdit, canView, canViewDetails, role } = useAuth();
   
-  console.log('App rendering - user:', user?.email, 'role:', role, 'canEdit:', canEdit, 'canView:', canView, 'loading:', authLoading);
 
   // Verificar si estamos en la ruta de callback
   const isAuthCallback = location.pathname === '/auth/callback';
@@ -43,10 +42,15 @@ const AppContent: React.FC = () => {
 
   // Load initial data: Supabase (si está activo y usuario autenticado) o fallback local
   useEffect(() => {
+    let isMounted = true;
+    let channel: any = null;
+
     const init = async () => {
       if (useSupabase() && supabase && user && canViewDetails) {
         try {
           const { schedule: s } = await db.loadAll();
+          
+          if (!isMounted) return;
           
           // Verificar si el schedule de Supabase está vacío
           const hasSessions = Object.keys(s).some(day => 
@@ -60,33 +64,49 @@ const AppContent: React.FC = () => {
             setSchedule(checkForConflicts(initialSchedule));
           }
           
-          const ch = supabase.channel('realtime-sessions')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'sessions' }, async () => {
-              try {
-                const { schedule: ns } = await db.loadAll();
-                setSchedule(checkForConflicts(ns));
-              } catch (e) { console.error(e); }
-            })
-            .subscribe();
-          return () => { supabase.removeChannel(ch); };
+          // Configurar canal de realtime solo si está montado
+          if (isMounted) {
+            channel = supabase.channel('realtime-sessions')
+              .on('postgres_changes', { event: '*', schema: 'public', table: 'sessions' }, async () => {
+                if (!isMounted) return;
+                try {
+                  const { schedule: ns } = await db.loadAll();
+                  if (isMounted) {
+                    setSchedule(checkForConflicts(ns));
+                  }
+                } catch (e) { 
+                  console.error(e); 
+                }
+              })
+              .subscribe();
+          }
         } catch (e) {
           console.error('Supabase init failed, using local fallback', e);
         }
       }
       
-      console.log('Loading local data...');
+      if (!isMounted) return;
+      
+      // Cargar datos locales como fallback
       const hash = window.location.hash.substring(1);
       let loadedSchedule: Schedule | null = null;
       if (hash) loadedSchedule = decodeSchedule(hash);
       
       const finalSchedule = loadedSchedule || getInitialSchedule();
-      console.log('Final schedule to set:', finalSchedule);
-      setSchedule(checkForConflicts(finalSchedule));
-      console.log('=== INIT EFFECT END ===');
+      if (isMounted) {
+        setSchedule(checkForConflicts(finalSchedule));
+      }
     };
-    const cleanup: any = init();
-    return () => { /* channel cleanup handled in init */ };
-  }, [user, canViewDetails]);
+
+    init();
+
+    return () => {
+      isMounted = false;
+      if (channel) {
+        supabase?.removeChannel(channel);
+      }
+    };
+  }, [user?.id, canViewDetails]); // Solo dependencias esenciales
 
   // Schedule is now managed entirely by the database
   // No localStorage needed
@@ -223,7 +243,6 @@ const AppContent: React.FC = () => {
 
   // Mostrar loading mientras se verifica la autenticación (solo si no estamos en callback)
   if (authLoading && !isAuthCallback) {
-    console.log('Showing loading screen...');
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="text-center">
@@ -237,11 +256,9 @@ const AppContent: React.FC = () => {
   // Mostrar vista de login solo si se requiere autenticación para ver detalles
   // (esto se puede personalizar según las necesidades)
   if (useSupabase() && !user && canViewDetails) {
-    console.log('Showing login view - user:', !!user, 'canViewDetails:', canViewDetails);
     return <LoginView onAuthSuccess={() => {}} />;
   }
 
-  console.log('Showing main app...');
   return (
     <div className="h-screen w-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       <Header 

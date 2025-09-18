@@ -48,22 +48,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [emailUser, setEmailUser] = useState<SessionInfo | null>(null);
 
   const checkUserRole = async (currentUser: User | null) => {
-    console.log('=== checkUserRole START ===');
-    console.log('checkUserRole called with user:', currentUser?.email);
-    console.log('supabase available:', !!supabase);
-    
     if (!currentUser || !supabase) {
-      console.log('No user or supabase, setting guest role');
       setRole('guest');
       setIsAdmin(false);
       setIsUser(false);
       setLoading(false);
-      console.log('=== checkUserRole END (no user/supabase) ===');
       return;
     }
 
     try {
-      console.log('Checking if user is in contacts (user)...');
       // PRIMERO: Verificar si es user (está en contacts) con timeout
       const userPromise = supabase
         .from('contacts')
@@ -80,21 +73,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         userTimeoutPromise
       ]) as any;
 
-      console.log('User check result:', { userData, userError, userEmail: currentUser.email });
-
       if (userData) {
-        console.log('User found in contacts, setting user role');
         setRole('user');
         setIsAdmin(false);
         setIsUser(true);
         setLoading(false);
-        console.log('Role set to user, loading set to false');
         return;
-      } else {
-        console.log('User NOT found in contacts, checking user_profiles for admin...');
       }
 
-      console.log('Checking if user is in user_profiles (admin)...');
       // SEGUNDO: Verificar si es admin (está en user_profiles) con timeout
       const adminPromise = supabase
         .from('user_profiles')
@@ -111,27 +97,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         adminTimeoutPromise
       ]) as any;
 
-      console.log('Admin check result:', { adminData, adminError });
-
       if (adminData) {
-        console.log('User found in user_profiles, setting admin role');
         setRole('admin');
         setIsAdmin(true);
         setIsUser(false);
         setLoading(false);
-        console.log('Role set to admin, loading set to false');
         return;
-      } else {
-        console.log('User NOT found in user_profiles, setting guest role');
       }
 
       // Si no está en ninguna tabla, es guest
-      console.log('User not found in any table, setting guest role');
       setRole('guest');
       setIsAdmin(false);
       setIsUser(false);
       setLoading(false);
-      console.log('Role set to guest, loading set to false');
 
     } catch (error) {
       console.error('Error checking user role:', error);
@@ -139,16 +117,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsAdmin(false);
       setIsUser(false);
       setLoading(false);
-      console.log('Error handled, role set to guest, loading set to false');
     }
-    console.log('=== checkUserRole END ===');
   };
 
   useEffect(() => {
+    let isMounted = true;
+
     // Check email session first
     const checkEmailSession = () => {
       const emailSession = emailAuth.getCurrentSession();
-      if (emailSession) {
+      if (emailSession && isMounted) {
         setEmailUser(emailSession);
         if (emailSession.role === 'admin') {
           setRole('admin');
@@ -167,7 +145,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     // Get initial session
     const getInitialSession = async () => {
-      console.log('Getting initial session...');
+      if (!isMounted) return;
       
       // Check email session first
       if (checkEmailSession()) {
@@ -175,25 +153,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       if (!supabase) {
-        console.log('No supabase client');
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
         return;
       }
 
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        console.log('Initial session:', session?.user?.email);
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          await checkUserRole(session.user);
-        } else {
-          setLoading(false);
+        if (isMounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          
+          if (session?.user) {
+            await checkUserRole(session.user);
+          } else {
+            setLoading(false);
+          }
         }
       } catch (error) {
         console.error('Error getting initial session:', error);
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
@@ -203,16 +185,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (supabase) {
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
         async (event, session) => {
-          console.log('Auth state change:', event, session?.user?.email);
+          if (!isMounted) return;
+          
           setSession(session);
           setUser(session?.user ?? null);
           
           if (session?.user) {
-            console.log('Calling checkUserRole from auth state change...');
             await checkUserRole(session.user);
-            console.log('checkUserRole completed from auth state change');
           } else {
-            console.log('No session user, setting guest role');
             setRole('guest');
             setIsAdmin(false);
             setIsUser(false);
@@ -221,8 +201,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       );
 
-      return () => subscription.unsubscribe();
+      return () => {
+        isMounted = false;
+        subscription.unsubscribe();
+      };
     }
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const signOut = async () => {
@@ -264,16 +251,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      setUser(session?.user ?? null);
       
-      if (session?.user) {
-        await checkUserRole(session.user);
-      } else {
-        setRole('guest');
-        setIsAdmin(false);
-        setIsUser(false);
-        setLoading(false);
+      // Solo actualizar si hay cambios
+      if (session?.user?.id !== user?.id) {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          await checkUserRole(session.user);
+        } else {
+          setRole('guest');
+          setIsAdmin(false);
+          setIsUser(false);
+          setLoading(false);
+        }
       }
     } catch (error) {
       console.error('Error refreshing auth:', error);
@@ -299,17 +290,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     refreshAuth,
   };
 
-  console.log('AuthContext value:', { 
-    user: user?.email, 
-    emailUser: emailUser?.email,
-    role, 
-    isAdmin, 
-    isUser, 
-    canEdit: isAdmin, 
-    canView: true, 
-    canViewDetails: isAdmin || isUser || !!emailUser,
-    loading 
-  });
 
   return (
     <AuthContext.Provider value={value}>

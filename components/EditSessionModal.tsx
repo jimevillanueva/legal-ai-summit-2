@@ -10,6 +10,7 @@ import { sesionService } from '../services/sesionService';
 import { Event_Speaker } from '@/types/Event_Speaker';
 import { Sesion } from '../types/Sesion';
 import { Speaker_Sesion } from '../types/Speaker_Sesion';
+import { exportToGoogleCalendar, exportToAppleCalendar } from '../utils/calendarExport';
 
 interface EditSessionModalProps {
   session: Sesion | null;  // Cambiar de Session a Sesion
@@ -231,6 +232,25 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
     }
   }
 
+  const handleExportToGoogle = () => {
+    if (session && formData.speakers) {
+      const googleURL = exportToGoogleCalendar(session,formData.speakers);
+      window.open(googleURL, '_blank');
+    }
+  };
+
+  const handleExportToApple = () => {
+    if (session && formData.speakers) {
+      // Crear un schedule temporal con solo esta sesión
+      const tempSchedule = {
+        [session.day]: {
+          [session.time]: [session]
+        }
+      };
+      exportToAppleCalendar(session);
+    }
+  };
+
   return (
     <div 
       className="fixed inset-0 bg-black bg-opacity-0 animate-[fadeIn_300ms_ease-out_forwards] z-40 flex justify-end" 
@@ -257,7 +277,28 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
           </button>
         </div>
 
-        {canViewDetails && !effectiveCanEdit ? (
+        {!effectiveCanViewDetails ? (
+          // Vista para usuarios no registrados
+          <div className="space-y-6">
+            <div className="bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-800 dark:to-blue-900/20 rounded-lg p-6 text-center">
+              <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">🔒</span>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                Inicia sesión para ver detalles
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Necesitas estar registrado para ver la información completa de esta sesión
+              </p>
+              <button 
+                onClick={onClose}
+                className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        ) : canViewDetails && !effectiveCanEdit ? (
           // Vista de solo lectura para usuarios registrados
           <div className="space-y-6">
             {/* Título */}
@@ -396,7 +437,38 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
               )}
             </div>
 
-            
+            {/* Botones de exportación - Solo para usuarios registrados */}
+            {effectiveCanViewDetails  && (
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+                <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-3 flex items-center gap-2">
+                  <span className="text-lg">📅</span>
+                  Exportar a Calendario
+                </h4>
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleExportToGoogle}
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors shadow-md"
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.84.81-.62z"/>
+                      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Google Calendar
+                  </button>
+                   <button
+                    onClick={handleExportToApple}
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-gray-800 text-white text-sm font-medium rounded-lg hover:bg-gray-900 transition-colors shadow-md"
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                    Apple Calendar
+                  </button> 
+                </div>
+              </div>
+            )}
 
             {/* Botones para vista de solo lectura */}
             <div className="flex justify-end pt-4">
@@ -407,197 +479,223 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
           </div>
         ) : (
           // Vista de formulario para edición
-          <>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Título de la Sesión</label>
-                <input 
-                  type="text" 
-                  name="title" 
-                  id="title" 
-                  value={formData.title || ''} 
-                  onChange={handleChange} 
-                  required 
-                  disabled={!effectiveCanEdit}
-                  className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!effectiveCanEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''}`} 
-                />
-              </div>
-              
-              {effectiveCanViewDetails && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                      Ponentes/Participantes
-                    </label>
-                    
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-4">
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Seleccionados:</h4>
-                        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 min-h-[60px]">
-                          {formData.speakers && formData.speakers.length > 0 ? (
-                            <div className="space-y-2">
-                              {formData.speakers.map(speaker => (
-                                <div key={speaker.id} className="flex items-center justify-between bg-white dark:bg-gray-700 rounded-md px-3 py-2 shadow-sm">
-                                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{speaker.name}</span>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleSpeakerToggle(speaker.id)}
-                                    disabled={!effectiveCanEdit}
-                                    className="text-red-500 hover:text-red-700 dark:hover:text-red-400 disabled:opacity-50 disabled:cursor-not-allowed"
-                                  >
-                                    <XIcon className="w-4 h-4" />
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="flex items-center justify-center h-12">
-                              <p className="text-sm text-gray-500 dark:text-gray-400 italic">
-                                Ningún ponente fue seleccionado
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Disponibles:</h4>
-                        <div className="bg-white dark:bg-gray-700 rounded-lg p-3 max-h-40 overflow-y-auto space-y-1 border border-gray-200 dark:border-gray-600">
-                          {speakers
-                            .filter(speaker => !formData.speakers?.some(s => s.id === speaker.id))
-                            .map(speaker => (
-                              <button
-                                key={speaker.id}
-                                type="button"
-                                onClick={() => handleSpeakerToggle(speaker.id)}
-                                disabled={!effectiveCanEdit}
-                                className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 hover:shadow-sm rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-transparent hover:border-gray-200 dark:hover:border-gray-500"
-                              >
-                                + {speaker.name}
-                              </button>
-                            ))}
-                          {speakers.filter(speaker => !formData.speakers?.some(s => s.id === speaker.id)).length === 0 && (
-                            <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-2">
-                              Todos los ponentes han sido seleccionados
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notas (opcional)</label>
-                    <textarea 
-                      name="notes" 
-                      id="notes" 
-                      value={formData.notes || ''} 
-                      onChange={handleChange} 
-                      rows={3} 
-                      disabled={!effectiveCanEdit}
-                      placeholder="Información adicional sobre la sesión..." 
-                      className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!effectiveCanEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''}`} 
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="zoomLink" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Enlace de Zoom (opcional)</label>
-                    <input 
-                      type="url" 
-                      name="zoomLink" 
-                      id="zoomLink" 
-                      value={formData.zoomLink || ''} 
-                      onChange={handleChange} 
-                      disabled={!effectiveCanEdit}
-                      placeholder="https://zoom.us/j/123456789"
-                      className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!effectiveCanEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''}`} 
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="day" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Día</label>
-                      <select 
-                        name="day" 
-                        id="day" 
-                        value={formData.day || ''} 
-                        onChange={handleChange} 
-                        disabled={!effectiveCanEdit}
-                        className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!effectiveCanEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed opacity-70' : ''}`}
-                      >
-                        <option value="">Selecciona un día</option>
-                        {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label htmlFor="time" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Hora</label>
-                      <select 
-                        name="time" 
-                        id="time" 
-                        value={formData.time || ''} 
-                        onChange={handleChange} 
-                        disabled={!effectiveCanEdit}
-                        className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!effectiveCanEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed opacity-70' : ''}`}
-                      >
-                        <option value="">Selecciona una hora</option>
-                        {TIMES.map(t => <option key={t} value={t}>{t}</option>)}
-                      </select>
-                    </div>
-                  </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Título de la Sesión</label>
+              <input 
+                type="text" 
+                name="title" 
+                id="title" 
+                value={formData.title || ''} 
+                onChange={handleChange} 
+                required 
+                className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!effectiveCanEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''}`} 
+              />
+            </div>
+            
+            {effectiveCanViewDetails && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                    Ponentes/Participantes
+                  </label>
                   
-                  {effectiveCanEdit && (
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-4">
                     <div>
-                      <label htmlFor="borderColor" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Color de Línea Lateral</label>
-                      <div className="flex space-x-2 items-center mt-1">
-                        <input 
-                          type="color" 
-                          name="borderColor" 
-                          id="borderColor" 
-                          value={formData.borderColor || '#6B7280'} 
-                          onChange={handleChange}
-                          disabled={!effectiveCanEdit}
-                          className={`w-12 h-10 rounded border border-gray-300 ${!effectiveCanEdit ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
-                        />
-                        <select
-                          name="borderColor"
-                          onChange={handleChange}
-                          value={formData.borderColor || '#6B7280'}
-                          disabled={!effectiveCanEdit}
-                          className={`flex-1 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!effectiveCanEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''}`}
-                        >
-                          <option value="#8B5CF6">Púrpura</option>
-                          <option value="#3B82F6">Azul</option>
-                          <option value="#10B981">Verde</option>
-                          <option value="#F59E0B">Naranja</option>
-                          <option value="#EF4444">Rojo</option>
-                          <option value="#EC4899">Rosa</option>
-                          <option value="#8B5A00">Marrón</option>
-                          <option value="#6B7280">Gris</option>
-                        </select>
+                      <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Seleccionados:</h4>
+                      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 min-h-[60px]">
+                        {formData.speakers && formData.speakers.length > 0 ? (
+                          <div className="space-y-2">
+                            {formData.speakers.map(speaker => (
+                              <div key={speaker.id} className="flex items-center justify-between bg-white dark:bg-gray-700 rounded-md px-3 py-2 shadow-sm">
+                                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{speaker.name}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleSpeakerToggle(speaker.id)}
+                                  disabled={!effectiveCanEdit}
+                                  className="text-red-500 hover:text-red-700 dark:hover:text-red-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  <XIcon className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center h-12">
+                            <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+                              Ningún ponente fue seleccionado
+                            </p>
+                          </div>
+                        )}
                       </div>
-                      <p className="text-xs text-gray-500 mt-1">Selecciona un color o usa el selector personalizado</p>
                     </div>
-                  )}
-                </>
-              )}
 
-              <div className="flex justify-between pt-4">
-                {effectiveCanEdit && effectiveCanViewDetails && session?.id && (
-                  <button type="button" onClick={handleDelete} className="inline-flex justify-center rounded-md border border-transparent bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2">
-                    Eliminar
-                  </button>
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Disponibles:</h4>
+                      <div className="bg-white dark:bg-gray-700 rounded-lg p-3 max-h-40 overflow-y-auto space-y-1 border border-gray-200 dark:border-gray-600">
+                        {speakers
+                          .filter(speaker => !formData.speakers?.some(s => s.id === speaker.id))
+                          .map(speaker => (
+                            <button
+                              key={speaker.id}
+                              type="button"
+                              onClick={() => handleSpeakerToggle(speaker.id)}
+                              disabled={!effectiveCanEdit}
+                              className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 hover:shadow-sm rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-transparent hover:border-gray-200 dark:hover:border-gray-500"
+                            >
+                              + {speaker.name}
+                            </button>
+                          ))}
+                        {speakers.filter(speaker => !formData.speakers?.some(s => s.id === speaker.id)).length === 0 && (
+                          <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-2">
+                            Todos los ponentes han sido seleccionados
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notas (opcional)</label>
+                  <textarea 
+                    name="notes" 
+                    id="notes" 
+                    value={formData.notes || ''} 
+                    onChange={handleChange} 
+                    rows={3} 
+                    disabled={!effectiveCanEdit}
+                    placeholder="Información adicional sobre la sesión..." 
+                    className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!effectiveCanEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''}`} 
+                  />
+                </div>
+                <div>
+                  <label htmlFor="zoomLink" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Enlace de Zoom (opcional)</label>
+                  <input 
+                    type="url" 
+                    name="zoomLink" 
+                    id="zoomLink" 
+                    value={formData.zoomLink || ''} 
+                    onChange={handleChange} 
+                    disabled={!effectiveCanEdit}
+                    placeholder="https://zoom.us/j/123456789"
+                    className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!effectiveCanEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''}`} 
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="day" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Día</label>
+                    <select 
+                      name="day" 
+                      id="day" 
+                      value={formData.day || ''} 
+                      onChange={handleChange} 
+                      disabled={!effectiveCanEdit}
+                      className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!effectiveCanEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed opacity-70' : ''}`}
+                    >
+                      <option value="">Selecciona un día</option>
+                      {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor="time" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Hora</label>
+                    <select 
+                      name="time" 
+                      id="time" 
+                      value={formData.time || ''} 
+                      onChange={handleChange} 
+                      disabled={!effectiveCanEdit}
+                      className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!effectiveCanEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed opacity-70' : ''}`}
+                    >
+                      <option value="">Selecciona una hora</option>
+                      {TIMES.map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                  </div>
+                </div>
+                
+                {effectiveCanEdit && (
+                  <div>
+                    <label htmlFor="borderColor" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Color de Línea Lateral</label>
+                    <div className="flex space-x-2 items-center mt-1">
+                      <input 
+                        type="color" 
+                        name="borderColor" 
+                        id="borderColor" 
+                        value={formData.borderColor || '#6B7280'} 
+                        onChange={handleChange}
+                        disabled={!effectiveCanEdit}
+                        className={`w-12 h-10 rounded border border-gray-300 ${!effectiveCanEdit ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+                      />
+                      <select
+                        name="borderColor"
+                        onChange={handleChange}
+                        value={formData.borderColor || '#6B7280'}
+                        disabled={!effectiveCanEdit}
+                        className={`flex-1 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${!effectiveCanEdit ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''}`}
+                      >
+                        <option value="#8B5CF6">Púrpura</option>
+                        <option value="#3B82F6">Azul</option>
+                        <option value="#10B981">Verde</option>
+                        <option value="#F59E0B">Naranja</option>
+                        <option value="#EF4444">Rojo</option>
+                        <option value="#EC4899">Rosa</option>
+                        <option value="#8B5A00">Marrón</option>
+                        <option value="#6B7280">Gris</option>
+                      </select>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Selecciona un color o usa el selector personalizado</p>
+                  </div>
                 )}
-                <div className="flex-grow"></div>
-                <button type="button" onClick={onClose} className={`${effectiveCanEdit && effectiveCanViewDetails ? 'mr-2' : ''} inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2`}>
-                  {effectiveCanEdit && effectiveCanViewDetails ? 'Cancelar' : 'Cerrar'}
+              </>
+            )}
+
+            <div className="flex justify-between pt-4">
+              {effectiveCanEdit && effectiveCanViewDetails && session?.id && (
+                <button type="button" onClick={handleDelete} className="inline-flex justify-center rounded-md border border-transparent bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2">
+                  Eliminar
                 </button>
-                {effectiveCanEdit && effectiveCanViewDetails && (
-                  <button type="submit" className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
-                    Guardar
+              )}
+              <div className="flex-grow"></div>
+              <button type="button" onClick={onClose} className={`${effectiveCanEdit && effectiveCanViewDetails ? 'mr-2' : ''} inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2`}>
+                {effectiveCanEdit && effectiveCanViewDetails ? 'Cancelar' : 'Cerrar'}
+              </button>
+              {effectiveCanEdit && effectiveCanViewDetails && (
+                <button type="submit" className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+                  Guardar
+                </button>
+              )}
+            </div>
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+                <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-3 flex items-center gap-2">
+                  <span className="text-lg">📅</span>
+                  Exportar a Calendario
+                </h4>
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleExportToGoogle}
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors shadow-md"
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.84.81-.62z"/>
+                      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Google Calendar
                   </button>
-                )}
+                   <button
+                    onClick={handleExportToApple}
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-gray-800 text-white text-sm font-medium rounded-lg hover:bg-gray-900 transition-colors shadow-md"
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                    Apple Calendar
+                  </button> 
+                </div>
               </div>
-            </form>
-          </>
+          </form>
         )}
       </div>
     </div>

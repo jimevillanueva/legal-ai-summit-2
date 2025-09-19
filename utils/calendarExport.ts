@@ -1,4 +1,6 @@
-import type { Schedule, Session } from '../types';
+import type { Schedule } from '../types';
+import { Sesion } from '../types/Sesion';
+import { Event_Speaker } from '../types/Event_Speaker';
 
 // Utility function to format date/time for ICS format
 const formatDateForICS = (day: string, time: string): string => {
@@ -17,8 +19,8 @@ const addOneHour = (day: string, time: string): string => {
 };
 
 // Generate ICS content for Apple Calendar, Outlook, etc.
-export const generateICS = (schedule: Schedule, eventName: string = 'Cumbre de IA Legal'): string => {
-  const allSessions: Session[] = [];
+export const generateICS = (schedule: Record<string, Record<string, Sesion[]>>, eventName: string = 'Cumbre de IA Legal'): string => {
+  const allSessions: Sesion[] = [];
   
   // Collect all sessions
   Object.values(schedule).forEach(day => 
@@ -53,24 +55,20 @@ export const generateICS = (schedule: Schedule, eventName: string = 'Cumbre de I
   ].join('\r\n');
 
   allSessions.forEach(session => {
-    if (session.status !== 'Cancelada') {
-      const startTime = formatDateForICS(session.day, session.time);
-      const endTime = addOneHour(session.day, session.time);
-      const speakers = session.speakers.map(s => s.name).join(', ');
-      
-      icsContent += '\r\n' + [
-        'BEGIN:VEVENT',
-        `UID:${session.id}@cumbre-ia-legal.com`,
-        `DTSTART;TZID=America/Mexico_City:${startTime}`,
-        `DTEND;TZID=America/Mexico_City:${endTime}`,
-        `SUMMARY:${session.title}`,
-        `DESCRIPTION:Ponentes: ${speakers}\\nSala: ${session.room}`,
-        `LOCATION:${session.room}`,
-        `STATUS:CONFIRMED`,
-        `CATEGORIES:${session.trackId}`,
-        'END:VEVENT'
-      ].join('\r\n');
-    }
+    const startTime = formatDateForICS(session.day, session.time);
+    const endTime = addOneHour(session.day, session.time);
+    
+    icsContent += '\r\n' + [
+      'BEGIN:VEVENT',
+      `UID:${session.id}@cumbre-ia-legal.com`,
+      `DTSTART;TZID=America/Mexico_City:${startTime}`,
+      `DTEND;TZID=America/Mexico_City:${endTime}`,
+      `SUMMARY:${session.title}`,
+      `DESCRIPTION:${session.description || 'Sesión de la Cumbre de IA Legal'}`,
+      `LOCATION:En línea`,
+      `STATUS:CONFIRMED`,
+      'END:VEVENT'
+    ].join('\r\n');
   });
 
   icsContent += '\r\nEND:VCALENDAR';
@@ -78,24 +76,23 @@ export const generateICS = (schedule: Schedule, eventName: string = 'Cumbre de I
 };
 
 // Generate Google Calendar URL
-export const generateGoogleCalendarURL = (session: Session): string => {
+export const generateGoogleCalendarURL = (session: Sesion): string => {
   const startDate = formatDateForICS(session.day, session.time);
   const endDate = addOneHour(session.day, session.time);
-  const speakers = session.speakers.map(s => s.name).join(', ');
   
   const googleURL = new URL('https://calendar.google.com/calendar/render');
   googleURL.searchParams.set('action', 'TEMPLATE');
   googleURL.searchParams.set('text', session.title);
   googleURL.searchParams.set('dates', `${startDate}/${endDate}`);
-  googleURL.searchParams.set('details', `Ponentes: ${speakers}\nSala: ${session.room}`);
-  googleURL.searchParams.set('location', session.room);
+  googleURL.searchParams.set('details', session.description || 'Sesión de la Cumbre de IA Legal');
+  googleURL.searchParams.set('location', 'En línea');
   googleURL.searchParams.set('ctz', 'America/Mexico_City');
   
   return googleURL.toString();
 };
 
 // Download ICS file
-export const downloadICSFile = (schedule: Schedule, filename: string = 'cumbre-ia-legal.ics'): void => {
+export const downloadICSFile = (schedule: Record<string, Record<string, Sesion[]>>, filename: string = 'cumbre-ia-legal.ics'): void => {
   const icsContent = generateICS(schedule);
   const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
   const link = document.createElement('a');
@@ -106,7 +103,7 @@ export const downloadICSFile = (schedule: Schedule, filename: string = 'cumbre-i
 };
 
 // Export individual session to Google Calendar
-export const exportToGoogleCalendar = (session: Session, speakers: any[]) => {
+export const exportToGoogleCalendar = (session: Sesion, speakers: Event_Speaker[]): string => {
   const speakerNames = speakers.map(s => s.name).join(', ');
   const startDate = formatDateForICS(session.day, session.time);
   const endDate = addOneHour(session.day, session.time);
@@ -115,21 +112,26 @@ export const exportToGoogleCalendar = (session: Session, speakers: any[]) => {
   googleURL.searchParams.set('action', 'TEMPLATE');
   googleURL.searchParams.set('text', session.title);
   googleURL.searchParams.set('dates', `${startDate}/${endDate}`);
-  googleURL.searchParams.set('details', `Ponentes: ${speakerNames}\nSala: ${session.room}`);
-  googleURL.searchParams.set('location', session.room);
+  googleURL.searchParams.set('details', `Ponentes: ${speakerNames}\n${session.description || ''}`);
+  googleURL.searchParams.set('location', 'En línea');
   googleURL.searchParams.set('ctz', 'America/Mexico_City');
   
   return googleURL.toString();
 };
 
-// Export all confirmed sessions to Apple Calendar
-export const exportToAppleCalendar = (schedule: Schedule): void => {
-  downloadICSFile(schedule, 'cumbre-ia-legal-completa.ics');
+// Export single session to Apple Calendar
+export const exportToAppleCalendar = (session: Sesion): void => {
+  const tempSchedule = {
+    [session.day]: {
+      [session.time]: [session]
+    }
+  };
+  downloadICSFile(tempSchedule, `${session.title.replace(/[^a-zA-Z0-9]/g, '-')}.ics`);
 };
 
 // Export selected sessions
-export const exportSelectedSessions = (sessions: Session[], filename: string = 'sesiones-seleccionadas.ics'): void => {
-  const tempSchedule: Schedule = {};
+export const exportSelectedSessions = (sessions: Sesion[], filename: string = 'sesiones-seleccionadas.ics'): void => {
+  const tempSchedule: Record<string, Record<string, Sesion[]>> = {};
   
   sessions.forEach(session => {
     if (!tempSchedule[session.day]) {

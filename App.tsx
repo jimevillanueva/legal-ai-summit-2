@@ -13,6 +13,9 @@ import AuthCallback from './components/AuthCallback';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { supabase, useSupabase } from './utils/supabaseClient';
+import { db } from './utils/db';
+import { checkForConflicts, decodeSchedule } from './utils/schedule'; // Cambiar de scheduleUtils a schedule
+import { getInitialSchedule } from './constants'; // getInitialSchedule viene de constants
 
 type SesionSchedule = Record<string, Record<string, Sesion[]>>;
 
@@ -52,86 +55,26 @@ const AppContent: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    let isMounted = true;
-    let channel: any = null;
+    cargarSesiones();
 
-    const init = async () => {
-      if (useSupabase() && supabase && user && canViewDetails) {
-        try {
-          const { schedule: s } = await db.loadAll();
-          
-          if (!isMounted) return;
-          
-          // Verificar si el schedule de Supabase está vacío
-          const hasSessions = Object.keys(s).some(day => 
-            Object.keys(s[day]).some(time => s[day][time].length > 0)
-          );
-          
-          if (hasSessions) {
-            setSchedule(checkForConflicts(s));
-          } else {
-            const initialSchedule = getInitialSchedule();
-            setSchedule(checkForConflicts(initialSchedule));
-          }
-          
-          // Configurar canal de realtime solo si está montado
-          if (isMounted) {
-            channel = supabase.channel('realtime-sessions')
-              .on('postgres_changes', { event: '*', schema: 'public', table: 'sessions' }, async () => {
-                if (!isMounted) return;
-                try {
-                  const { schedule: ns } = await db.loadAll();
-                  if (isMounted) {
-                    setSchedule(checkForConflicts(ns));
-                  }
-                } catch (e) { 
-                  console.error(e); 
-                }
-              })
-              .subscribe();
-          }
-        } catch (e) {
-          console.error('Supabase init failed, using local fallback', e);
-        }
-      }
+    // Configurar realtime si está disponible
+    if (useSupabase() && supabase) {
+      const channel = supabase.channel('realtime-sessions')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'sessions' }, () => {
+          cargarSesiones();
+        })
+        .subscribe();
       
-      if (!isMounted) return;
-      
-      // Cargar datos locales como fallback
-      const hash = window.location.hash.substring(1);
-      let loadedSchedule: Schedule | null = null;
-      if (hash) loadedSchedule = decodeSchedule(hash);
-      
-      const finalSchedule = loadedSchedule || getInitialSchedule();
-      if (isMounted) {
-        setSchedule(checkForConflicts(finalSchedule));
-      }
-    };
-
-    init();
-
-    return () => {
-      isMounted = false;
-      if (channel) {
-        supabase?.removeChannel(channel);
-      }
-    };
-  }, [user?.id, canViewDetails]); // Solo dependencias esenciales
+      return () => { supabase.removeChannel(channel); };
+    }
+  }, [cargarSesiones]);
 
   // Schedule is now managed entirely by the database
   // No localStorage needed
   
-  const findSessionById = useCallback((sessionId: string): [Session | null, string | null, string | null, number] => {
-    for (const day of Object.keys(schedule)) {
-      for (const time of Object.keys(schedule[day])) {
-        const index = schedule[day][time].findIndex(s => s.id === sessionId);
-        if (index >= 0) {
-          return [schedule[day][time][index], day, time, index];
-        }
-      }
-    }
-    return [null, null, null, -1];
-  }, [schedule]);
+  const findSessionById = useCallback((sessionId: string): Sesion | null => {
+    return sesiones.find(s => s.id === sessionId) || null;
+  }, [sesiones]);
 
   const handleSessionDrop = useCallback(async (sessionId: string, newDay: string, newTime: string) => {
     if (!canEdit) {
@@ -149,12 +92,12 @@ const AppContent: React.FC = () => {
         };
         
         await sesionService.updateSesion(updatedSession);
-        await cargarSesiones(); // Recargar sesiones
+        await cargarSesiones();
       } catch (error) {
         console.error('Error al mover sesión:', error);
       }
     }
-  }, [sesiones, findSessionById, canEdit, cargarSesiones]);
+  }, [findSessionById, canEdit, cargarSesiones]);
 
   const handleEditSession = (session: Sesion) => {
     setEditingSession(session);
@@ -294,11 +237,11 @@ const AppContent: React.FC = () => {
       />
       */}
       <SupabaseStatus />
-      <NotesPanel 
+      {/* <NotesPanel 
         isOpen={isNotesPanelOpen}
         onToggle={() => setIsNotesPanelOpen(!isNotesPanelOpen)}
         schedule={convertirSesionesToSchedule()}
-      />
+      /> */}
     </div>
   );
 };

@@ -122,6 +122,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     let isMounted = true;
+    let authCheckTimeout: NodeJS.Timeout;
 
     // Check email session first
     const checkEmailSession = () => {
@@ -181,34 +182,42 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     getInitialSession();
 
-    // Listen for auth changes
+    // Listen for auth changes with debouncing
     if (supabase) {
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
         async (event, session) => {
           if (!isMounted) return;
           
-          setSession(session);
-          setUser(session?.user ?? null);
-          
-          if (session?.user) {
-            await checkUserRole(session.user);
-          } else {
-            setRole('guest');
-            setIsAdmin(false);
-            setIsUser(false);
-            setLoading(false);
-          }
+          // Debounce auth changes to prevent rapid re-evaluation
+          clearTimeout(authCheckTimeout);
+          authCheckTimeout = setTimeout(async () => {
+            if (!isMounted) return;
+            
+            setSession(session);
+            setUser(session?.user ?? null);
+            
+            if (session?.user) {
+              await checkUserRole(session.user);
+            } else {
+              setRole('guest');
+              setIsAdmin(false);
+              setIsUser(false);
+              setLoading(false);
+            }
+          }, 100); // 100ms debounce
         }
       );
 
       return () => {
         isMounted = false;
+        clearTimeout(authCheckTimeout);
         subscription.unsubscribe();
       };
     }
 
     return () => {
       isMounted = false;
+      clearTimeout(authCheckTimeout);
     };
   }, []);
 

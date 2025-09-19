@@ -57,17 +57,19 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     cargarSesiones();
 
-    // Configurar realtime si está disponible
-    if (useSupabase() && supabase) {
+    // Configurar realtime solo si hay usuario autenticado
+    if (useSupabase() && supabase && user) {
       const channel = supabase.channel('realtime-sessions')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'sessions' }, () => {
           cargarSesiones();
         })
         .subscribe();
       
-      return () => { supabase.removeChannel(channel); };
+      return () => { 
+        supabase.removeChannel(channel); 
+      };
     }
-  }, [cargarSesiones]);
+  }, [cargarSesiones, user]); // Agregar user como dependencia
 
   // Schedule is now managed entirely by the database
   // No localStorage needed
@@ -206,6 +208,7 @@ const AppContent: React.FC = () => {
         onImportExport={() => setIsImportExportModalOpen(true)}
       />
       <ScheduleGrid 
+        sesiones={sesiones}
         onSessionDrop={handleSessionDrop}
         onEditSession={handleEditSession}
         onAddSession={handleAddSession}

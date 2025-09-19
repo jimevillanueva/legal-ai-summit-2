@@ -9,6 +9,7 @@ import { event_SpeakerService } from '../services/Event_speakers';
 import { Event_Speaker } from '../types/Event_Speaker';
 
 interface ScheduleGridProps {
+  sesiones: Sesion[]; // Agregar esta prop
   onSessionDrop: (sessionId: string, newDay: string, newTime: string) => void;
   onEditSession: (session: Sesion) => void;
   onAddSession: (day: string, time: string) => void;
@@ -16,7 +17,14 @@ interface ScheduleGridProps {
   canViewDetails: boolean;
 }
 
-const ScheduleGrid: React.FC<ScheduleGridProps> = ({ onSessionDrop, onEditSession, onAddSession, canEdit, canViewDetails }) => {
+const ScheduleGrid: React.FC<ScheduleGridProps> = ({ 
+  sesiones: sesionesProp, // Recibir como prop
+  onSessionDrop, 
+  onEditSession, 
+  onAddSession, 
+  canEdit, 
+  canViewDetails 
+}) => {
   const [sesiones, setSesiones] = useState<Sesion[]>([]);
   const [sessionSpeakers, setSessionSpeakers] = useState<Record<string, Event_Speaker[]>>({});
   const [loading, setLoading] = useState(true);
@@ -110,6 +118,18 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({ onSessionDrop, onEditSessio
     console.log("Schedule final organizado:", schedule);
     return schedule;
   };
+
+  // Usar useEffect para actualizar cuando cambien las sesiones de la prop
+  useEffect(() => {
+    if (sesionesProp && sesionesProp.length > 0) {
+      const data = sesionesProp.map(normalizarSesion);
+      setSesiones(data);
+      cargarSpeakersParaSesiones(data);
+    } else {
+      setSesiones([]);
+      setSessionSpeakers({});
+    }
+  }, [sesionesProp]);
 
   useEffect(() => {
     cargarTodasLasSesiones();

@@ -17,7 +17,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onAuthSuccess }) => {
         .from('contacts')
         .select('email')
         .eq('email', email)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error verifying email:', error);

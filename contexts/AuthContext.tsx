@@ -62,7 +62,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         .from('contacts')
         .select('email')
         .eq('email', currentUser.email)
-        .single();
+        .maybeSingle();
 
       const userTimeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('User check timeout')), 5000)
@@ -86,7 +86,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         .from('user_profiles')
         .select('rol')
         .eq('id', currentUser.id)
-        .single();
+        .maybeSingle();
 
       const adminTimeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Admin check timeout')), 5000)

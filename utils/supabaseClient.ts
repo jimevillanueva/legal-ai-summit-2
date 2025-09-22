@@ -8,6 +8,10 @@ export const useSupabase = (): boolean => {
 };
 
 export const supabase = url && anon
-  ? createClient(url, anon)
+  ? createClient(url, anon,{
+    db:{
+      schema: 'public',
+    },
+  })
   : (null as any);
 

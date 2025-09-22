@@ -38,7 +38,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
           .from('user_profiles')
           .select('rol')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
 
         if (profileError || !profileData) {
           setIsAdmin(false);

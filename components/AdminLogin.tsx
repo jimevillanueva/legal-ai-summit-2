@@ -49,7 +49,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onBack }) => {
         .from('user_profiles')
         .select('rol')
         .eq('id', data.user.id)
-        .single();
+        .maybeSingle();
 
       if (profileError || !profileData) {
         setError('Usuario no autorizado. Solo los administradores pueden acceder.');

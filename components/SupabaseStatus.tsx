@@ -8,7 +8,6 @@ const SupabaseStatus: React.FC = () => {
   useEffect(() => {
     const checkConnection = async () => {
       if (!supabase) {
-        console.log('Supabase not available');
         setStatus('disconnected');
         return;
       }
@@ -19,15 +18,14 @@ const SupabaseStatus: React.FC = () => {
           .select('count', { count: 'exact', head: true });
         
         if (error) {
-          console.log('Supabase error:', error.message);
+          console.error('Supabase error:', error.message);
           setStatus('disconnected');
         } else {
-          console.log('✅ Supabase connected successfully!');
           setStatus('connected');
           setSessionCount(data?.length || 0);
         }
       } catch (e) {
-        console.log('Supabase not available');
+        console.error('Supabase not available');
         setStatus('disconnected');
       }
     };
@@ -41,7 +39,6 @@ const SupabaseStatus: React.FC = () => {
         .on('postgres_changes', 
           { event: '*', schema: 'public', table: 'sessions' }, 
           (payload) => {
-            console.log('📡 Real-time update received:', payload);
           }
         )
         .subscribe();

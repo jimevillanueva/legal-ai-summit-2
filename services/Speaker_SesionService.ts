@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabase'
+import { supabase } from '../utils/supabaseClient'
 import { Speaker_Sesion } from '../types/Speaker_Sesion'
 
 export const speaker_SesionService = {

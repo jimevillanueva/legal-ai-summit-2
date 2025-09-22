@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabase'
+import { supabase } from '../utils/supabaseClient'
 import { Event_Speaker } from '../types/Event_Speaker'
 
 export const event_SpeakerService = {
@@ -21,7 +21,6 @@ export const event_SpeakerService = {
                         throw new Error(`Error en la base de datos: ${error.message}`)
                 }
             }
-            console.log(data);
             return data || []
         } catch (err) {
             console.error('Excepción inesperada en getAllEvent_Speakers:', err)

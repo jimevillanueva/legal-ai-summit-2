@@ -5,7 +5,7 @@ import { DAYS, TIMES } from '../constants';
 import SessionCard from './SessionCard';
 import { PlusIcon } from './icons';
 import { speaker_SesionService } from '../services/Speaker_SesionService';
-import { event_SpeakerService } from '../services/Event_speakers';
+import { event_SpeakerService } from '../services/Event_speakersService';
 import { Event_Speaker } from '../types/Event_Speaker';
 
 interface ScheduleGridProps {
@@ -31,11 +31,7 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({
 
   const normalizarSesion = (s: any) => {
     const dayNormalizado = new Date(s.day).toISOString().split("T")[0];
-    const timeNormalizado = s.time; // Ya viene en formato correcto "8:00"
-    
-    console.log(`Normalizando - Original day: ${s.day}, Normalizado: ${dayNormalizado}`);
-    console.log(`Normalizando - Original time: ${s.time}, Normalizado: ${timeNormalizado}`);
-    
+    const timeNormalizado = s.time; // Ya viene en formato correcto "8:00"   
     return {
       ...s,
       day: dayNormalizado,
@@ -48,15 +44,9 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({
     try {
       setLoading(true);
       const rawData = await sesionService.getAllSesions();
-      console.log("Datos raw de BD:", rawData);
       
       const data = rawData.map(normalizarSesion);
       setSesiones(data);
-      
-      console.log("Sesiones normalizadas:", data);
-      console.log("DAYS disponibles:", DAYS);
-      console.log("TIMES disponibles:", TIMES);
-      
       // Después de cargar sesiones, cargar sus speakers
       await cargarSpeakersParaSesiones(data);
     } catch (error) {
@@ -98,24 +88,12 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({
         schedule[day][time] = [];
       });
     });
-
-    console.log("Estructura inicial del schedule:", schedule);
-
     // Llenar con las sesiones
-    sesiones.forEach(sesion => {
-      console.log(`Intentando ubicar sesión: ${sesion.title} en día: ${sesion.day}, hora: ${sesion.time}`);
-      
+    sesiones.forEach(sesion => {  
       if (schedule[sesion.day] && schedule[sesion.day][sesion.time]) {
         schedule[sesion.day][sesion.time].push(sesion);
-        console.log(`✅ Sesión ubicada en ${sesion.day} ${sesion.time}`);
-      } else {
-        console.log(`❌ No se pudo ubicar sesión en día: ${sesion.day}, hora: ${sesion.time}`);
-        console.log(`Día existe: ${!!schedule[sesion.day]}`);
-        console.log(`Hora existe: ${schedule[sesion.day] ? !!schedule[sesion.day][sesion.time] : false}`);
       }
     });
-
-    console.log("Schedule final organizado:", schedule);
     return schedule;
   };
 

@@ -24,13 +24,6 @@ const SessionCard: React.FC<SessionCardProps> = ({
   
   // Log para debug
   useEffect(() => {
-    console.log("SessionCard recibió:", {
-      id: session.id,
-      title: session.title,
-      day: session.day,
-      time: session.time,
-      speakersCount: speakers.length
-    });
   }, [session, speakers]);
 
   const getBorderColor = () => {

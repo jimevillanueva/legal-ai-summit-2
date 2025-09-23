@@ -62,10 +62,6 @@ const SessionCard: React.FC<SessionCardProps> = ({
       `${session.description ? `Notas: ${session.description}\n` : ''}` +
       `\nClick para ver/editar detalles`
     : `${session.title}\n\nInicia sesión para ver más detalles`;
-  // Remover la función getSession que agregaste
-  // async function getSession() {
-  //   console.log(session +"HOLA----------");
-  // }
   if (isCompact) {
     return (
       <div
@@ -162,14 +158,9 @@ const SessionCard: React.FC<SessionCardProps> = ({
                   🔗 Zoom
                 </span>
               )}
-              {session.description && (
-                <span className="inline-flex items-center px-1 py-0.5 rounded text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                  📝 Notas
-                </span>
-              )}
               {speakers.length > 0 && (
                 <span className="inline-flex items-center px-1 py-0.5 rounded text-xs bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200">
-                  👥 {speakers.length}
+                    👥 {speakers.length} - {truncateText(speakers.map(s => s.name).join(', '), 15)}
                 </span>
               )}
             </div>

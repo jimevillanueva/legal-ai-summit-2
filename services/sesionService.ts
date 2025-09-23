@@ -75,6 +75,26 @@ export const sesionService = {
             throw err
         }
     },
+    async updateSesionTimeAndDay(sesionid: string, time: string, day: string): Promise<Sesion> {
+        try {
+            const { data, error } = await supabase
+                .from('sessions')
+                .update({ time: time, day: day })
+                .eq('id', sesionid)
+                .select()
+                .single()
+
+            if (error) {
+                console.error('Error al actualizar tiempo y día de sesión:', error.code, error.message)
+                throw new Error(`Error en la base de datos: ${error.message}`)
+            }
+
+            return data
+        } catch (err) {
+            console.error('Excepción inesperada en updateSesionTimeAndDay:', err)
+            throw err
+        }
+    },
 
     async deleteSesion(sesion: Sesion): Promise<Sesion> {
         try {

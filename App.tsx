@@ -83,21 +83,11 @@ const AppContent: React.FC = () => {
       console.warn('Usuario no tiene permisos para editar sesiones');
       return;
     }
-
-    const sessionToMove = findSessionById(sessionId);
-    if (sessionToMove) {
-      try {
-        const updatedSession: Sesion = {
-          ...sessionToMove,
-          day: newDay,
-          time: newTime
-        };
-        
-        await sesionService.updateSesion(updatedSession);
-        await cargarSesiones();
-      } catch (error) {
-        console.error('Error al mover sesión:', error);
-      }
+    try{
+      const updatedSession = await sesionService.updateSesionTimeAndDay(sessionId, newTime, newDay);
+      await cargarSesiones();
+    } catch (error) {
+      console.error('Error al mover sesión:', error);
     }
   }, [findSessionById, canEdit, cargarSesiones]);
 

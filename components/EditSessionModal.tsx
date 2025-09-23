@@ -11,6 +11,7 @@ import { Event_Speaker } from '@/types/Event_Speaker';
 import { Sesion } from '../types/Sesion';
 import { Speaker_Sesion } from '../types/Speaker_Sesion';
 import { exportToGoogleCalendar, exportToAppleCalendar } from '../utils/calendarExport';
+import { getSpeakerPhotoUrl, getCompanyLogoUrl } from '../utils/storage';
 import AlertaModal from './AlertaModal';
 import AppleCalendarLogo from './AppleCalendarLogo';
 
@@ -382,7 +383,7 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
       onClose();
     }
   };
-
+console.log(formData.speakers);
   return (
     <>
       <div 
@@ -456,7 +457,7 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                   <span className="w-4 h-4 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
                     👥
                   </span>
-                  Ponentes/Participantes
+                  Ponentes
                 </h4>
                 
                 {formData.speakers && formData.speakers.length > 0 ? (
@@ -465,9 +466,9 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                       <div key={speaker.id} className="flex items-start gap-4 p-4 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-700/50 dark:to-blue-900/20 rounded-lg border border-gray-100 dark:border-gray-600">
                         {/* Avatar con foto real o inicial */}
                         <div className="flex-shrink-0">
-                          {speaker.photo ? (
+                          {speaker.photo && speaker.photo.trim() ? (
                             <img 
-                              src={speaker.photo} 
+                              src={getSpeakerPhotoUrl(speaker.photo) || speaker.photo} 
                               alt={speaker.name}
                               className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-md"
                               onError={(e) => {
@@ -478,7 +479,7 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                               }}
                             />
                           ) : null}
-                          <div className={`w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md ${speaker.photo ? 'hidden' : ''}`}>
+                          <div className={`w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md ${speaker.photo && speaker.photo.trim() ? 'hidden' : ''}`}>
                             {speaker.name.charAt(0).toUpperCase()}
                           </div>
                         </div>
@@ -496,9 +497,20 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                           )}
                           
                           {speaker.company && (
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                              {speaker.company}
-                            </p>
+                            <div className="flex items-center gap-2 mt-1">
+                              {speaker.company && speaker.company.trim() && (
+                                <img 
+                                  src={getCompanyLogoUrl(speaker.company)} 
+                                  alt={`${speaker.company} logo`}
+                                  className="w-6 h-6 object-contain"
+                                  onError={(e) => {
+                                    // Si falla la imagen del logo, ocultarla
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                  }}
+                                />
+                              )}
+                            </div>
                           )}
                           
                           {speaker.linkedin && (
@@ -670,10 +682,41 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                               {formData.speakers.map(speaker => (
                                 <div key={speaker.id} className="group flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg px-4 py-3 border border-green-200 dark:border-green-700 hover:shadow-md transition-all duration-200">
                                   <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                                    {speaker.photo && speaker.photo.trim() ? (
+                                      <img 
+                                        src={getSpeakerPhotoUrl(speaker.photo) || speaker.photo} 
+                                        alt={speaker.name}
+                                        className="w-8 h-8 rounded-full object-cover border-2 border-white shadow-sm"
+                                        onError={(e) => {
+                                          // Si falla la imagen, mostrar inicial
+                                          const target = e.target as HTMLImageElement;
+                                          target.style.display = 'none';
+                                          target.nextElementSibling!.classList.remove('hidden');
+                                        }}
+                                      />
+                                    ) : null}
+                                    <div className={`w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold ${speaker.photo && speaker.photo.trim() ? 'hidden' : ''}`}>
                                       {speaker.name.charAt(0).toUpperCase()}
                                     </div>
-                                    <span className="font-medium text-gray-900 dark:text-gray-100">{speaker.name}</span>
+                                    <div className="flex-1">
+                                      <span className="font-medium text-gray-900 dark:text-gray-100">{speaker.name}</span>
+                                      {speaker.company && (
+                                        <div className="flex items-center gap-1 mt-1">
+                                          {speaker.company && speaker.company.trim() && (
+                                            <img 
+                                              src={getCompanyLogoUrl(speaker.company)} 
+                                              alt={`${speaker.company} logo`}
+                                              className="w-4 h-4 object-contain"
+                                              onError={(e) => {
+                                                const target = e.target as HTMLImageElement;
+                                                target.style.display = 'none';
+                                              }}
+                                            />
+                                          )}
+                                          <span className="text-xs text-gray-500 dark:text-gray-400">{speaker.company}</span>
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
                                   <button
                                     type="button"
@@ -715,13 +758,42 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                                 disabled={!effectiveCanEdit}
                                 className="w-full group flex items-center gap-3 px-4 py-3 text-left hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed border-b border-gray-100 dark:border-gray-700 last:border-b-0"
                               >
-                                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 text-sm font-bold">
+                                {speaker.photo && speaker.photo.trim() ? (
+                                  <img 
+                                    src={getSpeakerPhotoUrl(speaker.photo) || speaker.photo} 
+                                    alt={speaker.name}
+                                    className="w-8 h-8 rounded-full object-cover border-2 border-white shadow-sm"
+                                    onError={(e) => {
+                                      // Si falla la imagen, mostrar inicial
+                                      const target = e.target as HTMLImageElement;
+                                      target.style.display = 'none';
+                                      target.nextElementSibling!.classList.remove('hidden');
+                                    }}
+                                  />
+                                ) : null}
+                                <div className={`w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 text-sm font-bold ${speaker.photo && speaker.photo.trim() ? 'hidden' : ''}`}>
                                   {speaker.name.charAt(0).toUpperCase()}
                                 </div>
                                 <div className="flex-1">
                                   <p className="font-medium text-gray-900 dark:text-gray-100">{speaker.name}</p>
                                   {speaker.position && (
                                     <p className="text-xs text-gray-500 dark:text-gray-400">{speaker.position}</p>
+                                  )}
+                                  {speaker.company && (
+                                    <div className="flex items-center gap-1 mt-1">
+                                      {speaker.company && speaker.company.trim() && (
+                                        <img 
+                                          src={getCompanyLogoUrl(speaker.company)} 
+                                          alt={`${speaker.company} logo`}
+                                          className="w-4 h-4 object-contain"
+                                          onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            target.style.display = 'none';
+                                          }}
+                                        />
+                                      )}
+                                      <span className="text-xs text-gray-500 dark:text-gray-400">{speaker.company}</span>
+                                    </div>
                                   )}
                                 </div>
                                 <div className="opacity-0 group-hover:opacity-100 text-blue-500 transition-opacity duration-200">

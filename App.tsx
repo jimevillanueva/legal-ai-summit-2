@@ -229,7 +229,7 @@ const AppContent: React.FC = () => {
         schedule={convertirSesionesToSchedule()}
       />
       */}
-      <SupabaseStatus />
+      {/*<SupabaseStatus />*/}
       {/* <NotesPanel 
         isOpen={isNotesPanelOpen}
         onToggle={() => setIsNotesPanelOpen(!isNotesPanelOpen)}

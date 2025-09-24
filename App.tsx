@@ -28,6 +28,10 @@ const MainApp: React.FC = () => {
   const [isNotesPanelOpen, setIsNotesPanelOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const { user, loading: authLoading, canEdit, canView, canViewDetails, role } = useAuth();
+  const location = useLocation();
+
+  // Verificar si estamos en la ruta de callback
+  const isAuthCallback = location.pathname === '/auth/callback';
 
   // Cargar sesiones desde el backend
   const cargarSesiones = useCallback(async () => {
@@ -229,17 +233,11 @@ const MainApp: React.FC = () => {
 };
 
 const AppContent: React.FC = () => {
-  const location = useLocation();
-
-  // Verificar si estamos en la ruta de callback
-  const isAuthCallback = location.pathname === '/auth/callback';
-
-  if (isAuthCallback) {
-    return <AuthCallback />;
-  }
-
   return (
     <Routes>
+      {/* Ruta de callback de autenticación */}
+      <Route path="/auth/callback" element={<AuthCallback />} />
+      
       {/* Ruta pública para tickets */}
       <Route path="/ticket/:contactId" element={<UserTicket />} />
       

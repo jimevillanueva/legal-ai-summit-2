@@ -173,5 +173,23 @@ export const db = {
       .eq('id', taskId);
     
     if (error) throw error;
+  },
+
+  // Contacts
+  getContactById: async (contactId: string): Promise<{ id: string; name: string; email: string } | null> => {
+    if (!useSupabase() || !supabase) return null;
+    
+    const { data, error } = await supabase
+      .from('contacts')
+      .select('id, name, email')
+      .eq('id', contactId)
+      .single();
+    
+    if (error) {
+      console.error('Error fetching contact:', error);
+      return null;
+    }
+    
+    return data;
   }
 };

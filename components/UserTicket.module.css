@@ -1,0 +1,600 @@
+.userTicket {
+  margin: 0;
+  padding: 40px;
+  background: linear-gradient(135deg, #000000 0%, #0a0a1f 50%, #000000 100%);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Loading styles */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  color: white;
+  gap: 20px;
+}
+
+.loadingSpinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.userTicket::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(circle at 20% 50%, rgba(0, 212, 255, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(91, 63, 255, 0.06) 0%, transparent 40%),
+    radial-gradient(circle at 40% 20%, rgba(0, 212, 255, 0.05) 0%, transparent 50%),
+    linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(45deg, transparent 30%, rgba(0, 212, 255, 0.02) 30%, rgba(0, 212, 255, 0.02) 31%, transparent 31%),
+    linear-gradient(-45deg, transparent 30%, rgba(91, 63, 255, 0.02) 30%, rgba(91, 63, 255, 0.02) 31%, transparent 31%);
+  background-size: 
+    100% 100%, 
+    100% 100%, 
+    100% 100%,
+    40px 40px,
+    40px 40px,
+    60px 60px,
+    60px 60px;
+  pointer-events: none;
+  z-index: 0;
+  animation: backgroundFloat 30s ease-in-out infinite;
+}
+
+@keyframes backgroundFloat {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0.8; }
+}
+
+.userTicket::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(circle at 1px 1px, rgba(0, 212, 255, 0.15) 1px, transparent 1px);
+  background-size: 20px 20px;
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.userTicket > * {
+  position: relative;
+  z-index: 1;
+}
+
+.backgroundImageContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  background-image: url('/ritchiero_lady_justice_a_blueprint-style_vector_art_piece_set_3ce899c7-06e0-42dd-9db7-e21bb75c0b0b_3.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center center;
+  opacity: 0.3;
+  filter: brightness(1.2) contrast(1.1);
+  mix-blend-mode: screen;
+}
+
+.ticketContainer {
+  width: 400px;
+  height: 800px;
+  background: linear-gradient(145deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  border-radius: 24px;
+  border: 2px solid rgba(0, 212, 255, 0.6);
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.4),
+    0 0 40px rgba(0, 212, 255, 0.2),
+    0 0 80px rgba(0, 128, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  transform: perspective(1200px) rotateY(-8deg) rotateX(2deg);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+}
+
+.ticketContainer:hover {
+  transform: perspective(1200px) rotateY(0deg) rotateX(0deg) translateY(-8px);
+  box-shadow: 
+    0 35px 70px -12px rgba(0, 0, 0, 0.5),
+    0 0 60px rgba(0, 212, 255, 0.35),
+    0 0 120px rgba(0, 128, 255, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  border-color: rgba(0, 212, 255, 0.8);
+}
+
+.ticketMain {
+  height: 520px;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-bottom: 2px dashed rgba(0, 212, 255, 0.5);
+  position: relative;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(91, 63, 255, 0.08) 0%, transparent 50%),
+    linear-gradient(145deg, rgba(26, 26, 46, 0.95) 0%, rgba(22, 33, 62, 0.95) 100%);
+  border-radius: 22px 22px 0 0;
+  margin: 4px 4px 0 4px;
+  backdrop-filter: blur(10px);
+}
+
+.ticketMain::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.02) 50%, transparent 70%);
+  border-radius: 22px 22px 0 0;
+  pointer-events: none;
+}
+
+.ticketHeader {
+  text-align: left;
+  z-index: 2;
+  position: relative;
+}
+
+.logoContainer {
+  width: 100%;
+  margin: 0 0 15px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.summitLogoImage {
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  filter: 
+    drop-shadow(0 0 10px rgba(0, 212, 255, 0.6))
+    drop-shadow(0 0 25px rgba(0, 212, 255, 0.4))
+    drop-shadow(0 0 40px rgba(0, 212, 255, 0.2));
+  animation: logoGlow 4s ease-in-out infinite;
+}
+
+@keyframes logoGlow {
+  0%, 100% {
+    filter: 
+      drop-shadow(0 0 10px rgba(0, 212, 255, 0.6))
+      drop-shadow(0 0 25px rgba(0, 212, 255, 0.4))
+      drop-shadow(0 0 40px rgba(0, 212, 255, 0.2));
+  }
+  50% {
+    filter: 
+      drop-shadow(0 0 15px rgba(0, 212, 255, 0.8))
+      drop-shadow(0 0 35px rgba(0, 212, 255, 0.5))
+      drop-shadow(0 0 50px rgba(0, 212, 255, 0.3));
+  }
+}
+
+.holoSticker {
+  position: absolute;
+  top: 18px;
+  right: 26px;
+  width: 62px;
+  height: 62px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #bfc5cf 0%, #7b8696 100%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow:
+    0 8px 18px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  z-index: 4;
+}
+
+.holoFoil {
+  position: absolute;
+  inset: -20%;
+  background:
+    repeating-conic-gradient(
+      from 0deg,
+      rgba(255, 255, 255, 0.35) 0deg 6deg,
+      rgba(255, 255, 255, 0) 6deg 12deg
+    ),
+    conic-gradient(
+      from 0deg,
+      hsl(200 100% 65% / 0.55),
+      hsl(260 100% 65% / 0.55),
+      hsl(320 100% 65% / 0.55),
+      hsl(20 100% 65% / 0.55),
+      hsl(80 100% 65% / 0.55),
+      hsl(140 100% 65% / 0.55),
+      hsl(200 100% 65% / 0.55)
+    );
+  filter: saturate(125%);
+  mix-blend-mode: screen;
+  animation: holoSpin 14s linear infinite;
+}
+
+.holoSticker::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 120% at 30% 30%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.2) 30%, transparent 60%);
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+}
+
+.holoEngrave {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  mix-blend-mode: overlay;
+  user-select: none;
+  pointer-events: none;
+  filter:
+    drop-shadow(0 1px 0 rgba(255, 255, 255, 0.45))
+    drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.35));
+}
+
+.holoEngraveMask {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(230,238,255,0.2) 45%, rgba(195,210,255,0.15) 100%);
+  border-radius: 8px;
+  opacity: 0.4;
+  filter: brightness(1.1) contrast(1.1)
+    drop-shadow(0 1px 0 rgba(255,255,255,0.3))
+    drop-shadow(0 -1px 0 rgba(0,0,0,0.2));
+}
+
+@keyframes holoSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.eventDates {
+  font-size: calc(16px * 0.8);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.ticketCenter {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.hexagonPattern {
+  position: relative;
+  width: 100%;
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hexagonGrid {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  opacity: 0.4;
+}
+
+.hexagon {
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.2) 0%, rgba(91, 63, 255, 0.1) 100%);
+  border: 1px solid rgba(0, 212, 255, 0.5);
+  clip-path: polygon(30% 0%, 70% 0%, 100% 50%, 70% 100%, 30% 100%, 0% 50%);
+  animation: hexFloat 4s ease-in-out infinite;
+  box-shadow: 
+    0 0 10px rgba(0, 212, 255, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.hexagon:nth-child(odd) {
+  animation-delay: 1s;
+  background: linear-gradient(135deg, rgba(91, 63, 255, 0.2) 0%, rgba(0, 212, 255, 0.1) 100%);
+  border-color: rgba(91, 63, 255, 0.5);
+  box-shadow: 
+    0 0 10px rgba(91, 63, 255, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.hexagon:nth-child(3n) {
+  animation-delay: 2s;
+}
+
+@keyframes hexFloat {
+  0%, 100% { 
+    transform: translateY(0px) rotate(0deg);
+    opacity: 0.6;
+  }
+  50% { 
+    transform: translateY(-8px) rotate(180deg);
+    opacity: 1;
+  }
+}
+
+.centralDataMatrix {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+}
+
+.dataMatrix {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 160px;
+  height: 160px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 10px;
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.35),
+    0 2px 10px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  overflow: hidden;
+}
+
+.dataMatrix canvas {
+  width: 140px;
+  height: 140px;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.15));
+}
+
+.dataMatrix::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(0, 212, 255, 0) 0%,
+      rgba(0, 212, 255, 0.12) 48%,
+      rgba(0, 212, 255, 0) 100%
+    );
+  transform: translateY(-100%);
+  animation: scanBeam 6s ease-in-out infinite;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+
+@keyframes scanBeam {
+  0% { transform: translateY(-100%); }
+  50% { transform: translateY(0%); }
+  100% { transform: translateY(100%); }
+}
+
+.ticketFooter {
+  text-align: center;
+  z-index: 2;
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.ticketCode {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  font-weight: 600;
+  margin: 0 0 10px 0;
+  letter-spacing: 1px;
+}
+
+.barcode {
+  display: flex;
+  justify-content: center;
+  align-items: end;
+  gap: 1px;
+  height: 25px;
+}
+
+.barcodeLine {
+  background: #b8b8b8;
+  opacity: 0.8;
+}
+
+.lawgicLogo {
+  display: block;
+  max-width: 120px;
+  width: 60%;
+  height: auto;
+  margin: 10px auto 20px auto;
+  opacity: 0.95;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+}
+
+.ticketInfo {
+  flex: 1;
+  background: 
+    linear-gradient(145deg, rgba(248, 249, 250, 0.98) 0%, rgba(233, 236, 239, 0.95) 100%);
+  border-radius: 0 0 20px 20px;
+  padding: 16px 30px 20px 30px;
+  display: flex;
+  align-items: flex-start;
+  margin: 20px 4px 4px 4px;
+  border-top: 2px dashed rgba(0, 212, 255, 0.5);
+  position: relative;
+  backdrop-filter: blur(10px);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.ticketInfo::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 30px;
+  right: 30px;
+  height: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 8px,
+    rgba(0, 212, 255, 0.4) 8px,
+    rgba(0, 212, 255, 0.4) 16px
+  );
+}
+
+.infoContent {
+  width: 100%;
+  padding-right: 90px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.infoTitle {
+  color: #1a1a2e;
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.infoDates {
+  color: #666;
+  font-size: 14px;
+  margin: 0;
+  font-weight: 500;
+}
+
+.infoOrganizer {
+  color: #666;
+  font-size: 12px;
+  margin: 0;
+  font-weight: 600;
+}
+
+.attendeeName {
+  background: linear-gradient(135deg, rgba(14, 8, 254, 0.08) 0%, rgba(0, 212, 255, 0.08) 100%);
+  border-radius: 12px;
+  padding: 12px 18px;
+  border: 2px solid rgba(0, 212, 255, 0.2);
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  margin: 8px 0 0 0;
+  position: relative;
+}
+
+.attendeeName::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(135deg, #00d4ff 0%, #5b3fff 100%);
+  border-radius: 12px 12px 0 0;
+}
+
+.attendeeEmail {
+  color: #666;
+  font-size: 12px;
+  margin: 4px 0 0 0;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.nameHighlight {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a2e;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.ticketContainer::before {
+  content: '';
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  border: 2px solid rgba(0, 212, 255, 0.3);
+  border-radius: 12px;
+  pointer-events: none;
+}
+
+.ticketContainer::after {
+  content: '';
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  right: 24px;
+  bottom: 24px;
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .holoFoil { animation: none; }
+  .dataMatrix::after { animation: none; display: none; }
+}
+
+@media print {
+  .holoFoil { animation: none; }
+  .dataMatrix { box-shadow: none; }
+  .dataMatrix::after { display: none; }
+}

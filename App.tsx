@@ -11,6 +11,7 @@ import NotesPanel from './components/NotesPanel';
 import LoginView from './components/LoginView';
 import AuthCallback from './components/AuthCallback';
 import ProtectedRoute from './components/ProtectedRoute';
+import UserTicket from './components/UserTicket';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { supabase, useSupabase } from './utils/supabaseClient';
 import { db } from './utils/db';
@@ -19,8 +20,7 @@ import { getInitialSchedule } from './constants'; // getInitialSchedule viene de
 
 type SesionSchedule = Record<string, Record<string, Sesion[]>>;
 
-const AppContent: React.FC = () => {
-  const location = useLocation();
+const MainApp: React.FC = () => {
   const [sesiones, setSesiones] = useState<Sesion[]>([]); // Cambiar schedule por sesiones
   const [editingSession, setEditingSession] = useState<Sesion | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -28,17 +28,6 @@ const AppContent: React.FC = () => {
   const [isNotesPanelOpen, setIsNotesPanelOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const { user, loading: authLoading, canEdit, canView, canViewDetails, role } = useAuth();
-
-  // Verificar si estamos en la ruta de callback
-  const isAuthCallback = location.pathname === '/auth/callback';
-
-  if (isAuthCallback) {
-    return <AuthCallback />;
-  }
-
-  if (location.pathname === '/admin') {
-    return <ProtectedRoute />;
-  }
 
   // Cargar sesiones desde el backend
   const cargarSesiones = useCallback(async () => {
@@ -236,6 +225,30 @@ const AppContent: React.FC = () => {
         schedule={convertirSesionesToSchedule()}
       /> */}
     </div>
+  );
+};
+
+const AppContent: React.FC = () => {
+  const location = useLocation();
+
+  // Verificar si estamos en la ruta de callback
+  const isAuthCallback = location.pathname === '/auth/callback';
+
+  if (isAuthCallback) {
+    return <AuthCallback />;
+  }
+
+  return (
+    <Routes>
+      {/* Ruta pública para tickets */}
+      <Route path="/ticket/:contactId" element={<UserTicket />} />
+      
+      {/* Ruta protegida para admin */}
+      <Route path="/admin" element={<ProtectedRoute />} />
+      
+      {/* Ruta principal */}
+      <Route path="/" element={<MainApp />} />
+    </Routes>
   );
 };
 

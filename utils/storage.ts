@@ -29,7 +29,6 @@ export const getStorageUrl = (bucketName: string, fileName: string): string | nu
  * @returns The public URL for the speaker photo, or null if not found
  */
 export const getSpeakerPhotoUrl = (photoFileName: string): string | null => {
-  console.log('getSpeakerPhotoUrl called with:', photoFileName);
   
   // Si ya es una URL completa, construir la URL correcta
   if (photoFileName.startsWith('http://') || photoFileName.startsWith('https://')) {
@@ -38,7 +37,6 @@ export const getSpeakerPhotoUrl = (photoFileName: string): string | null => {
     if (fileName) {
       // Construir la URL correcta usando Supabase Storage
       const url = getStorageUrl('speakers_event_photos', fileName);
-      console.log('Corrected speaker photo URL:', url);
       return url;
     }
     return photoFileName;
@@ -46,7 +44,6 @@ export const getSpeakerPhotoUrl = (photoFileName: string): string | null => {
   
   // Si es solo un nombre de archivo, construir la URL desde Supabase Storage
   const url = getStorageUrl('speakers_event_photos', photoFileName);
-  console.log('Generated storage URL:', url);
   return url;
 };
 
@@ -56,7 +53,6 @@ export const getSpeakerPhotoUrl = (photoFileName: string): string | null => {
  * @returns The public URL for the company logo, or null if not found
  */
 export const getCompanyLogoUrl = (logoFileName: string): string | null => {
-  console.log('getCompanyLogoUrl called with:', logoFileName);
   
   // Si ya es una URL completa, construir la URL correcta
   if (logoFileName.startsWith('http://') || logoFileName.startsWith('https://')) {
@@ -65,7 +61,6 @@ export const getCompanyLogoUrl = (logoFileName: string): string | null => {
     if (fileName) {
       // Construir la URL correcta usando Supabase Storage
       const url = getStorageUrl('company_logo_event', fileName);
-      console.log('Corrected company logo URL:', url);
       return url;
     }
     return logoFileName;
@@ -73,6 +68,5 @@ export const getCompanyLogoUrl = (logoFileName: string): string | null => {
   
   // Si es solo un nombre de archivo, construir la URL desde Supabase Storage
   const url = getStorageUrl('company_logo_event', logoFileName);
-  console.log('Generated company logo storage URL:', url);
   return url;
 };

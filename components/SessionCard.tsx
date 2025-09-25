@@ -21,10 +21,7 @@ const SessionCard: React.FC<SessionCardProps> = ({
   isCompact, 
   canViewDetails 
 }) => {
-  
-  // Log para debug
-  useEffect(() => {
-  }, [session, speakers]);
+
 
   const getBorderColor = () => {
     return session.color || '#6B7280';
@@ -49,7 +46,6 @@ const SessionCard: React.FC<SessionCardProps> = ({
   const getSessionInfo = () => {
     const info = [];
     if (session.link) info.push('🔗 Zoom disponible');
-    if (session.description) info.push('📝 Tiene notas');
     if (speakers.length > 0) info.push(`👥 ${speakers.length} ponente${speakers.length > 1 ? 's' : ''}`);
     return info.join(' • ');
   };
@@ -94,12 +90,12 @@ const SessionCard: React.FC<SessionCardProps> = ({
           <>
             {speakers.length > 0 && (
               <p className="text-xs text-gray-400 dark:text-gray-400 leading-tight truncate" style={{fontSize: '9px'}}>
-                {truncateText(speakers.map(s => s.name).join(', '), 25)}
+                {truncateText(speakers.map(s => s.name).join(', '), 40)}
               </p>
             )}
             <div className="flex items-center gap-1 mt-1">
               {session.link && <span className="text-green-500" title="Tiene enlace de Zoom">🔗</span>}
-              {session.description && <span className="text-blue-500" title="Tiene notas">📝</span>}
+              {speakers.length > 0 && <span className="text-purple-500" title={`${speakers.length} ponente${speakers.length > 1 ? 's' : ''}`}>👥</span>}
             </div>
           </>
         ) : (
@@ -160,7 +156,7 @@ const SessionCard: React.FC<SessionCardProps> = ({
               )}
               {speakers.length > 0 && (
                 <span className="inline-flex items-center px-1 py-0.5 rounded text-xs bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200">
-                    👥 {speakers.length} - {truncateText(speakers.map(s => s.name).join(', '), 15)}
+                    👥 {speakers.length} - {truncateText(speakers.map(s => s.name).join(', '), 35)}
                 </span>
               )}
             </div>

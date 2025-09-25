@@ -39,38 +39,6 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({
     };
   };
 
-  // Eliminar este useEffect que está causando el bucle
-  // useEffect(() => {
-  //   console.log("ScheduleGrid montado con sesiones:", sesionesProp);
-  //   const data = sesionesProp.map(normalizarSesion);
-  //   setSesiones(data);
-  //   cargarSpeakersParaSesiones(data);
-  // },[]);
-
-  // Función para cargar todas las sesiones
-  /* const cargarTodasLasSesiones = async () => {
-    //console.log('Cargando sesiones en ScheduleGrid');
-    //const inicio = performance.now();
-    try {
-      setLoading(true);
-      const rawData = await sesionService.getAllSesions();
-      const fin = performance.now();
-      
-      const data = rawData.map(normalizarSesion);
-      //console.log(`⏱ Tiempo de ejecución: ${(fin - inicio).toFixed(2)} ms`);
-      setSesiones(data);
-
-      // Después de cargar sesiones, cargar sus speakers
-      await cargarSpeakersParaSesiones(data);
-
-    } catch (error) {
-      console.error('Error al cargar sesiones:', error);
-      setSesiones([]);
-    } finally {
-      setLoading(false);
-    }
-  }; */
-
   // Función para cargar speakers de todas las sesiones
   const cargarSpeakersParaSesiones = async (sesiones: Sesion[]) => {
     //console.log('Cargando speakers en ScheduleGrid');

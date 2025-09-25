@@ -1,33 +1,67 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { Sesion } from '../types/Sesion';
 import { AlertTriangleIcon } from './icons';
 import { exportToGoogleCalendar, exportSelectedSessions } from '../utils/calendarExport';
 import { Event_Speaker } from '../types/Event_Speaker';
 import { useEffect } from 'react';
+import { speaker_SesionService } from '../services/Speaker_SesionService';
+import { event_SpeakerService } from '../services/Event_speakersService';
 
 interface SessionCardProps {
   session: Sesion;
-  speakers: Event_Speaker[];
   onDoubleClick: (session: Sesion) => void;
   onDragStart: (e: React.DragEvent<HTMLDivElement>, session: Sesion) => void;
   isCompact?: boolean;
   canViewDetails?: boolean;
 }
-const SessionCard: React.FC<SessionCardProps> = ({ 
-  session, 
-  speakers, 
-  onDoubleClick, 
-  onDragStart, 
-  isCompact, 
-  canViewDetails 
+const SessionCard: React.FC<SessionCardProps> = ({
+  session,
+  onDoubleClick,
+  onDragStart,
+  isCompact,
+  canViewDetails,
 }) => {
-  
+  const [speakers, setSpeakers] = useState<Event_Speaker[]>([]);
   // Log para debug
   useEffect(() => {
-  }, [session, speakers]);
+    const fetchSpeakers = async () => {
+      try {
+        const speakerSessiones =
+          await speaker_SesionService.getAllSpeaker_SesionsBySesionId(session.id);
+
+        if (speakerSessiones.length === 0) {
+          setSpeakers([]);
+          return;
+        }
+
+        const speakerPromises = speakerSessiones.map(async (sesionRel) => {
+          try {
+            return await event_SpeakerService.getEvent_SpeakersById(sesionRel.speaker_id);
+          } catch (error) {
+            return null;
+          }
+        });
+
+        const results = await Promise.allSettled(speakerPromises);
+        
+        const fetchedSpeakers = results
+          .filter((result): result is PromiseFulfilledResult<Event_Speaker> => 
+            result.status === 'fulfilled' && result.value !== null
+          )
+          .map(result => result.value);
+
+        setSpeakers(fetchedSpeakers);
+      } catch (error) {
+        console.error("Error cargando speakers:", error);
+        setSpeakers([]);
+      }
+    };
+
+    fetchSpeakers();
+  }, [session.id]);
 
   const getBorderColor = () => {
-    return session.color || '#6B7280';
+    return session.color || "#6B7280";
   };
 
   /* const handleExportToGoogle = (e: React.MouseEvent) => {
@@ -100,6 +134,11 @@ const SessionCard: React.FC<SessionCardProps> = ({
             <div className="flex items-center gap-1 mt-1">
               {session.link && <span className="text-green-500" title="Tiene enlace de Zoom">🔗</span>}
               {session.description && <span className="text-blue-500" title="Tiene notas">📝</span>}
+              {speakers.length > 0 && (
+                <span className="inline-flex items-center px-1 py-0.5 rounded text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" style={{fontSize: '8px'}}>
+                  👥 {speakers.length}
+                </span>
+              )}
             </div>
           </>
         ) : (
@@ -158,11 +197,10 @@ const SessionCard: React.FC<SessionCardProps> = ({
                   🔗 Zoom
                 </span>
               )}
-              {speakers.length > 0 && (
-                <span className="inline-flex items-center px-1 py-0.5 rounded text-xs bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200">
-                    👥 {speakers.length} - {truncateText(speakers.map(s => s.name).join(', '), 15)}
-                </span>
-              )}
+              
+              <span className="inline-flex items-center px-1 py-0.5 rounded text-xs bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200">
+                  👥 {speakers.length} - {truncateText(speakers.map(s => s.name).join(', '), 15)}
+              </span>
             </div>
           </>
         ) : (

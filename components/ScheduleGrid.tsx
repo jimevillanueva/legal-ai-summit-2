@@ -132,7 +132,6 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({
     if (sesionesProp && sesionesProp.length > 0) {
       const data = sesionesProp.map(normalizarSesion);
       setSesiones(data);
-      cargarSpeakersParaSesiones(data);
       setLoading(false);
     } else {
       setSesiones([]);
@@ -223,7 +222,6 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                           <div key={session.id} className="relative">
                             <SessionCard 
                               session={session}
-                              speakers={sessionSpeakers[session.id] || []}
                               onDoubleClick={onEditSession}
                               onDragStart={handleDragStart}
                               isCompact={sessions.length > 1}

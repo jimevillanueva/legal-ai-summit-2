@@ -1,0 +1,163 @@
+/* SessionCard.css - Estilos para SessionCard.tsx */
+
+.session-card {
+  @apply p-2 rounded-lg flex flex-col justify-between cursor-grab active:cursor-grabbing transition-all duration-200 ease-in-out relative group hover:scale-102 hover:shadow-xl;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(156, 163, 175, 0.4);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+.session-card-compact {
+  @apply p-1.5 rounded-lg flex flex-col cursor-grab active:cursor-grabbing transition-all duration-200 ease-in-out relative group min-h-12 hover:scale-102 hover:shadow-lg;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(156, 163, 175, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.session-card-dragging {
+  @apply opacity-50 transform rotate-2deg scale-95;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.session-card-drag-end {
+  @apply opacity-100 transform rotate-0deg scale-100;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+.session-card-compact-dragging {
+  @apply opacity-50 transform rotate-3deg scale-95;
+}
+
+.session-card-compact-drag-end {
+  @apply opacity-100 transform rotate-0deg scale-100;
+}
+
+.session-title {
+  @apply font-medium text-sm leading-tight text-gray-900 dark:text-white;
+  font-size: 11px;
+}
+
+.session-title-compact {
+  @apply font-medium text-xs leading-tight text-gray-900 dark:text-white truncate;
+  font-size: 10px;
+}
+
+.session-speakers {
+  @apply text-xs mt-1 text-gray-400 dark:text-gray-400 leading-tight;
+  font-size: 10px;
+}
+
+.session-speakers-compact {
+  @apply text-xs text-gray-400 dark:text-gray-400 leading-tight truncate;
+  font-size: 9px;
+}
+
+.session-info-container {
+  @apply mt-2 flex flex-wrap gap-1;
+}
+
+.session-info-badge {
+  @apply inline-flex items-center px-1 py-0.5 rounded text-xs;
+}
+
+.session-info-badge-zoom {
+  @apply bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200;
+}
+
+.session-info-badge-speakers {
+  @apply bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200;
+}
+
+.session-info-icons {
+  @apply flex items-center gap-1 mt-1;
+}
+
+.session-info-icon {
+  @apply text-green-500;
+}
+
+.session-info-icon-notes {
+  @apply text-blue-500;
+}
+
+.session-login-text {
+  @apply text-xs mt-1 text-gray-500 dark:text-gray-500 leading-tight italic;
+  font-size: 10px;
+}
+
+.session-login-text-compact {
+  @apply text-xs text-gray-500 dark:text-gray-500 leading-tight truncate italic;
+  font-size: 9px;
+}
+
+.session-time-badge {
+  @apply absolute top-1 right-1 text-xs text-gray-400 opacity-60;
+  font-size: 8px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .session-card {
+    @apply p-1.5;
+  }
+  
+  .session-card-compact {
+    @apply p-1 min-h-10;
+  }
+  
+  .session-title {
+    font-size: 10px;
+  }
+  
+  .session-title-compact {
+    font-size: 9px;
+  }
+  
+  .session-speakers {
+    font-size: 9px;
+  }
+  
+  .session-speakers-compact {
+    font-size: 8px;
+  }
+  
+  .session-info-container {
+    @apply mt-1 gap-0.5;
+  }
+  
+  .session-info-badge {
+    @apply px-0.5 py-0.5 text-xs;
+  }
+}
+
+@media (max-width: 640px) {
+  .session-card {
+    @apply p-1;
+  }
+  
+  .session-card-compact {
+    @apply p-0.5 min-h-8;
+  }
+  
+  .session-title {
+    font-size: 9px;
+  }
+  
+  .session-title-compact {
+    font-size: 8px;
+  }
+  
+  .session-speakers {
+    font-size: 8px;
+  }
+  
+  .session-speakers-compact {
+    font-size: 7px;
+  }
+  
+  .session-time-badge {
+    font-size: 7px;
+  }
+}

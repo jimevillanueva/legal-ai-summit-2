@@ -39,39 +39,64 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({
     };
   };
 
+  // Eliminar este useEffect que está causando el bucle
+  // useEffect(() => {
+  //   console.log("ScheduleGrid montado con sesiones:", sesionesProp);
+  //   const data = sesionesProp.map(normalizarSesion);
+  //   setSesiones(data);
+  //   cargarSpeakersParaSesiones(data);
+  // },[]);
+
   // Función para cargar todas las sesiones
-  const cargarTodasLasSesiones = async () => {
+  /* const cargarTodasLasSesiones = async () => {
+    //console.log('Cargando sesiones en ScheduleGrid');
+    //const inicio = performance.now();
     try {
       setLoading(true);
       const rawData = await sesionService.getAllSesions();
+      const fin = performance.now();
       
       const data = rawData.map(normalizarSesion);
+      //console.log(`⏱ Tiempo de ejecución: ${(fin - inicio).toFixed(2)} ms`);
       setSesiones(data);
+
       // Después de cargar sesiones, cargar sus speakers
       await cargarSpeakersParaSesiones(data);
+
     } catch (error) {
       console.error('Error al cargar sesiones:', error);
       setSesiones([]);
     } finally {
       setLoading(false);
     }
-  };
+  }; */
 
   // Función para cargar speakers de todas las sesiones
   const cargarSpeakersParaSesiones = async (sesiones: Sesion[]) => {
+    //console.log('Cargando speakers en ScheduleGrid');
+    //const inicio = performance.now();
+  
     try {
       const allSpeakers = await event_SpeakerService.getAllEvent_Speakers();
+  
+      // Disparar todas las llamadas en paralelo
+      const results = await Promise.all(
+        sesiones.map(sesion => speaker_SesionService.getAllSpeaker_SesionsBySesionId(sesion.id))
+      );
+  
+      // Armar el map
       const speakersMap: Record<string, Event_Speaker[]> = {};
-
-      for (const sesion of sesiones) {
-        // Cargar speakers de cada sesión
-        const speakerSesions = await speaker_SesionService.getAllSpeaker_SesionsBySesionId(sesion.id);
+      sesiones.forEach((sesion, index) => {
+        const speakerSesions = results[index];
         const speakerIds = speakerSesions.map(ss => ss.speaker_id);
-        const sessionSpeakersData = allSpeakers.filter(speaker => speakerIds.includes(speaker.id));
-        speakersMap[sesion.id] = sessionSpeakersData;
-      }
-
+        speakersMap[sesion.id] = allSpeakers.filter(speaker => speakerIds.includes(speaker.id));
+      });
+  
       setSessionSpeakers(speakersMap);
+  
+      //const fin = performance.now();
+      //console.log(`⏱ Tiempo de ejecución: ${(fin - inicio).toFixed(2)} ms`);
+  
     } catch (error) {
       console.error('Error al cargar speakers:', error);
     }
@@ -79,6 +104,8 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({
 
   // Organizar sesiones por día y hora para el grid
   const organizarSesionesPorDiaYHora = () => {
+    //console.log('Organizando sesiones en ScheduleGrid');
+    //const inicio = performance.now();
     const schedule: Record<string, Record<string, Sesion[]>> = {};
     
     // Inicializar estructura vacía
@@ -94,6 +121,9 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({
         schedule[sesion.day][sesion.time].push(sesion);
       }
     });
+    //
+    // const fin = performance.now();
+    //console.log(`⏱ Tiempo de ejecución: ${(fin - inicio).toFixed(2)} ms`);
     return schedule;
   };
 
@@ -103,16 +133,18 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({
       const data = sesionesProp.map(normalizarSesion);
       setSesiones(data);
       cargarSpeakersParaSesiones(data);
+      setLoading(false);
     } else {
       setSesiones([]);
       setSessionSpeakers({});
+      setLoading(false);
     }
   }, [sesionesProp]);
 
-  useEffect(() => {
+ /*  useEffect(() => {
     cargarTodasLasSesiones();
 
-  }, []);
+  }, []); */
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, session: Sesion) => {
     e.dataTransfer.setData('sessionId', session.id);

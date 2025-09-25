@@ -96,14 +96,12 @@ export const sesionService = {
         }
     },
 
-    async deleteSesion(sesion: Sesion): Promise<Sesion> {
+    async deleteSesion(sesion: Sesion): Promise<void> {
         try {
-            const { data, error } = await supabase
+            const { error } = await supabase
                 .from('sessions')
                 .delete()
-                .eq('id', sesion.id)
-                .select()
-                .single()
+                .eq('id', sesion.id);
 
             if (error) {
                 console.error('Error al eliminar sesión:', error.code, error.message)
@@ -116,12 +114,6 @@ export const sesionService = {
                         throw new Error(`Error en la base de datos: ${error.message}`)
                 }
             }
-
-            if (!data) {
-                throw new Error('Sesión no encontrada')
-            }
-
-            return data
         } catch (err) {
             console.error('Excepción inesperada en deleteSesion:', err)
             throw err
@@ -175,7 +167,6 @@ export const sesionService = {
                 throw new Error(`Error en la base de datos: ${error.message}`)
             }
           }
-      
           return data || []
         } catch (err) {
           console.error('Excepción inesperada en getAllSesions:', err)

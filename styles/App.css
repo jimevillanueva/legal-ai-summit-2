@@ -1,0 +1,32 @@
+/* App.css - Estilos para App.tsx */
+
+.app-container {
+  @apply h-screen w-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100;
+}
+
+.loading-container {
+  @apply min-h-screen flex items-center justify-center bg-gray-100;
+}
+
+.loading-content {
+  @apply text-center;
+}
+
+.loading-spinner {
+  @apply animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4;
+}
+
+.loading-text {
+  @apply text-gray-600;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .loading-spinner {
+    @apply w-6 h-6;
+  }
+  
+  .loading-text {
+    @apply text-sm;
+  }
+}

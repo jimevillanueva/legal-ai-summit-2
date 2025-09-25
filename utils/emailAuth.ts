@@ -32,9 +32,9 @@ export const emailAuth = {
       // Verificar si está en contacts (user)
       const { data: contactData, error: contactError } = await supabase
         .from('contacts')
-        .select('email, name')
+        .select('id, email, name')
         .eq('email', email)
-        .single();
+        .maybeSingle();
 
       if (contactData && !contactError) {
         return {
@@ -50,9 +50,9 @@ export const emailAuth = {
       // Verificar si está en user_profiles (admin)
       const { data: profileData, error: profileError } = await supabase
         .from('user_profiles')
-        .select('email, name, role')
+        .select('id, email, name, role')
         .eq('email', email)
-        .single();
+        .maybeSingle();
 
       if (profileData && !profileError) {
         return {

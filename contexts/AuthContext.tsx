@@ -22,6 +22,13 @@ interface AuthContextType {
   logoutEmail: () => void;
   // Force refresh
   refreshAuth: () => Promise<void>;
+  // User metadata helper
+  getUserMetadata: () => {
+    contact_id?: string;
+    user_role?: string;
+    user_name?: string;
+    uid?: string;
+  } | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -280,6 +287,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // Función para obtener metadata del usuario desde diferentes fuentes
+  const getUserMetadata = () => {
+    // Primero intentar obtener desde localStorage (donde guardamos los datos del login)
+    const contactId = localStorage.getItem('user_contact_id');
+    const userRole = localStorage.getItem('user_role');
+    const userName = localStorage.getItem('user_name');
+    
+    if (contactId) {
+      return {
+        contact_id: contactId,
+        user_role: userRole || 'user',
+        user_name: userName || '',
+        uid: user?.id || contactId, // Usar contactId como fallback del UID
+      };
+    }
+    
+    // Fallback: si hay sesión de Supabase, usar esos datos
+    if (session?.user?.user_metadata) {
+      const metadata = session.user.user_metadata;
+      return {
+        contact_id: metadata.contact_id,
+        user_role: metadata.user_role,
+        user_name: metadata.user_name,
+        uid: session.user.id,
+      };
+    }
+    
+    return null;
+  };
+
   const value = {
     user,
     session,
@@ -297,6 +334,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logoutEmail,
     // Force refresh
     refreshAuth,
+    // User metadata
+    getUserMetadata,
   };
 
 

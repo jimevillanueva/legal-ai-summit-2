@@ -24,7 +24,11 @@ create index if not exists sessions_day_time_idx on public.sessions(day, time);
 alter table public.sessions enable row level security;
 
 -- Public read
-create policy if not exists sessions_read_all on public.sessions for select using (true);
+-- Drop the policy if it exists to avoid errors on subsequent runs.
+drop policy if exists sessions_read_all on public.sessions;
+
+-- Create the new policy without the 'if not exists' clause.
+create policy sessions_read_all on public.sessions for select using (true);
 
 -- Authenticated write
 create policy if not exists sessions_write_auth on public.sessions for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');

@@ -51,7 +51,7 @@ const EmailLoginModal: React.FC<EmailLoginModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Correo Electrónico
+              Email Autorizado
             </label>
             <input
               type="email"
@@ -63,6 +63,9 @@ const EmailLoginModal: React.FC<EmailLoginModalProps> = ({
               disabled={loading}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white disabled:opacity-50"
             />
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Solo emails previamente autorizados pueden acceder
+            </p>
           </div>
 
           {error && (
@@ -91,7 +94,7 @@ const EmailLoginModal: React.FC<EmailLoginModalProps> = ({
         </form>
 
         <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
-          <p>Ingresa tu correo electrónico para acceder a los detalles completos de la agenda.</p>
+          <p>Ingresa tu correo electrónico autorizado para acceder al cronograma.</p>
         </div>
       </div>
     </div>

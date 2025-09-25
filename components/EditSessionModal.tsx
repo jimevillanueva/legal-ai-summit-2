@@ -665,7 +665,7 @@ console.log(formData.speakers);
                         <span className="text-white text-sm font-bold"></span>
                       </div>
                       <h3 className="text-lg font-semibold text-purple-900 dark:text-purple-100">
-                        Ponentes/Participantes <span className="text-red-500">*</span>
+                        Ponentes <span className="text-red-500">*</span>
                       </h3>
                     </div>
                     
@@ -713,7 +713,7 @@ console.log(formData.speakers);
                                               }}
                                             />
                                           )}
-                                          <span className="text-xs text-gray-500 dark:text-gray-400">{speaker.company}</span>
+                                          <span className="text-xs text-gray-500 dark:text-gray-400">{speaker.position}</span>
                                         </div>
                                       )}
                                     </div>

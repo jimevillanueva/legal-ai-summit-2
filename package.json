@@ -5,22 +5,28 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:vercel": "vercel dev",
     "build": "vite build",
     "preview": "vite preview",
     "seed:supabase": "tsx scripts/seed-supabase.ts",
-    "create-admin": "tsx scripts/create-admin-user.ts"
+    "create-admin": "tsx scripts/create-admin-user.ts",
+    "send-test-email": "node sendTestEmail.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",
     "@types/react-router-dom": "^5.3.3",
+    "dotenv": "^17.2.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "react-router-dom": "^7.9.1"
+    "react-router-dom": "^7.9.1",
+    "resend": "^6.1.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
+    "@vercel/node": "^5.3.24",
     "tsx": "^4.19.2",
     "typescript": "~5.8.2",
+    "vercel": "^48.1.6",
     "vite": "^6.2.0"
   }
 }

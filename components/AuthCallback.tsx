@@ -11,17 +11,18 @@ const AuthCallback: React.FC = () => {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        console.log('Processing auth callback...');
-        console.log('Current URL:', window.location.href);
-        
-        // Obtener los parámetros de la URL
+        // Obtener los parámetros de la URL (tanto hash como query params)
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const queryParams = new URLSearchParams(window.location.search);
+        
         const accessToken = hashParams.get('access_token');
         const refreshToken = hashParams.get('refresh_token');
         const error = hashParams.get('error');
         const errorDescription = hashParams.get('error_description');
-
-        console.log('URL params:', { accessToken: !!accessToken, refreshToken: !!refreshToken, error, errorDescription });
+        
+        // Obtener datos del contacto de los query parameters
+        const contactId = queryParams.get('contact_id');
+        const userName = queryParams.get('user_name');
 
         if (error) {
           console.error('Auth error from URL:', error, errorDescription);
@@ -29,47 +30,34 @@ const AuthCallback: React.FC = () => {
         }
 
         if (accessToken && refreshToken) {
-          console.log('Setting session with tokens...');
           setCurrentStep('Estableciendo sesión...');
           
-          // Intercambiar el código por la sesión
           const { data, error: sessionError } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
           });
 
-          console.log('Session result:', { data: !!data.session, error: sessionError });
-
           if (sessionError) {
-            console.error('Session error:', sessionError);
             throw sessionError;
           }
 
           if (data.session) {
-            console.log('Session created successfully');
             setCurrentStep('Sesión establecida correctamente...');
-            // No redirigir aquí, dejar que el useEffect detecte el cambio de usuario
-            // Limpiar la URL para evitar bucles
+           
             window.history.replaceState({}, document.title, '/');
           } else {
             throw new Error('No se pudo crear la sesión');
           }
         } else {
-          // Si no hay tokens en la URL, verificar si ya hay una sesión activa
-          console.log('No tokens in URL, checking current session...');
           setCurrentStep('Verificando sesión existente...');
           const { data: { session }, error: sessionError } = await supabase.auth.getSession();
           
           if (sessionError) {
-            console.error('Error getting current session:', sessionError);
             throw sessionError;
           }
 
           if (session) {
-            console.log('Current session found');
             setCurrentStep('Sesión encontrada, configurando...');
-            // No redirigir aquí, dejar que el useEffect detecte el cambio de usuario
-            // Limpiar la URL para evitar bucles
             window.history.replaceState({}, document.title, '/');
           } else {
             throw new Error('No hay sesión activa. El enlace puede haber expirado.');

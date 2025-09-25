@@ -8,7 +8,6 @@ import EditSessionModal from './components/EditSessionModal';
 import ImportExportModal from './components/ImportExportModal';
 import SupabaseStatus from './components/SupabaseStatus';
 import NotesPanel from './components/NotesPanel';
-import LoginView from './components/LoginView';
 import AuthCallback from './components/AuthCallback';
 import ProtectedRoute from './components/ProtectedRoute';
 import UserTicket from './components/UserTicket';
@@ -179,10 +178,6 @@ const MainApp: React.FC = () => {
     );
   }
 
-  // Mostrar vista de login si es necesario
-  if (useSupabase() && !user && canViewDetails) {
-    return <LoginView onAuthSuccess={() => {}} />;
-  }
 
   return (
     <div className="h-screen w-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">

@@ -1,5 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { corsHeaders } from '../_shared/cors.ts'
+
+// CORS headers
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
 
@@ -335,7 +340,7 @@ function generateTicketTemplate(data: any): string {
             <div style="text-align: center; margin-top: 30px;">
                 <p><strong style="font-weight: bold;">¿Necesitas ayuda?</strong></p>
                 <div style="margin: 15px 0;">
-                    <a href="https://www.loom.com/share/a7d3cddf08b84730b925e020af00c40d?sid=e06425df-f79f-461a-ab41-355c37446edf" style="display: inline-block; background: linear-gradient(135deg, #625DF5 0%, #8B5CF6 100%); color: white; text-decoration: none; padding: 12px 25px; border-radius: 6px; font-weight: 600; font-size: 14px; margin: 10px 0; transition: transform 0.2s;">
+                    <a href="https://www.loom.com/share/cf6beb05807f47b9806d74aafb235358?sid=80598527-37ae-4765-9d80-ae385d09bd8d" style="display: inline-block; background: linear-gradient(135deg, #625DF5 0%, #8B5CF6 100%); color: white; text-decoration: none; padding: 12px 25px; border-radius: 6px; font-weight: 600; font-size: 14px; margin: 10px 0; transition: transform 0.2s;">
                         🎥 Video Tutorial - Cómo Acceder a la Agenda
                     </a>
                 </div>

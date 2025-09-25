@@ -334,6 +334,11 @@ function generateTicketTemplate(data: any): string {
             </div>
             <div style="text-align: center; margin-top: 30px;">
                 <p><strong style="font-weight: bold;">¿Necesitas ayuda?</strong></p>
+                <div style="margin: 15px 0;">
+                    <a href="https://www.loom.com/share/a7d3cddf08b84730b925e020af00c40d?sid=e06425df-f79f-461a-ab41-355c37446edf" style="display: inline-block; background: linear-gradient(135deg, #625DF5 0%, #8B5CF6 100%); color: white; text-decoration: none; padding: 12px 25px; border-radius: 6px; font-weight: 600; font-size: 14px; margin: 10px 0; transition: transform 0.2s;">
+                        🎥 Video Tutorial - Cómo Acceder a la Agenda
+                    </a>
+                </div>
                 <p>Contacta al administrador del evento</p>
                 <p>Email: ricardo.rodriguez@getlawgic.com</p>
             </div>

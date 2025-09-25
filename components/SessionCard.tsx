@@ -110,7 +110,7 @@ const SessionCard: React.FC<SessionCardProps> = ({
           e.currentTarget.style.transform = 'rotate(0deg) scale(1)';
         }}
         onClick={() => onDoubleClick(session)}
-        className="p-1.5 rounded-lg flex flex-col cursor-grab active:cursor-grabbing transition-all duration-200 ease-in-out relative group min-h-12 hover:scale-102 hover:shadow-lg"
+        className="p-1 sm:p-1.5 rounded-lg flex flex-col cursor-grab active:cursor-grabbing transition-all duration-200 ease-in-out relative group min-h-10 sm:min-h-12 hover:scale-102 hover:shadow-lg"
         style={{
           background: 'rgba(255, 255, 255, 0.1)',
           backdropFilter: 'blur(10px)',
@@ -120,29 +120,29 @@ const SessionCard: React.FC<SessionCardProps> = ({
         }}
         title={tooltipText}
       >
-        <h4 className="font-medium text-xs leading-tight text-gray-900 dark:text-white truncate" style={{fontSize: '10px'}}>
-          {truncateText(session.title, 30)}
+        <h4 className="font-medium text-[8px] sm:text-[10px] leading-tight text-gray-900 dark:text-white truncate">
+          {truncateText(session.title, 25)}
         </h4>
         
         {canViewDetails ? (
           <>
             {speakers.length > 0 && (
-              <p className="text-xs text-gray-400 dark:text-gray-400 leading-tight truncate" style={{fontSize: '9px'}}>
-                {truncateText(speakers.map(s => s.name).join(', '), 25)}
+              <p className="text-[7px] sm:text-[9px] text-gray-400 dark:text-gray-400 leading-tight truncate">
+                {truncateText(speakers.map(s => s.name).join(', '), 20)}
               </p>
             )}
-            <div className="flex items-center gap-1 mt-1">
-              {session.link && <span className="text-green-500" title="Tiene enlace de Zoom">🔗</span>}
-              {session.description && <span className="text-blue-500" title="Tiene notas">📝</span>}
+            <div className="flex items-center gap-0.5 sm:gap-1 mt-1">
+              {session.link && <span className="text-green-500 text-[8px] sm:text-[10px]" title="Tiene enlace de Zoom">🔗</span>}
+              {session.description && <span className="text-blue-500 text-[8px] sm:text-[10px]" title="Tiene notas">📝</span>}
               {speakers.length > 0 && (
-                <span className="inline-flex items-center px-1 py-0.5 rounded text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" style={{fontSize: '8px'}}>
+                <span className="inline-flex items-center px-0.5 sm:px-1 py-0.5 rounded text-[6px] sm:text-[8px] bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                   👥 {speakers.length}
                 </span>
               )}
             </div>
           </>
         ) : (
-          <p className="text-xs text-gray-500 dark:text-gray-500 leading-tight truncate italic" style={{fontSize: '9px'}}>
+          <p className="text-[7px] sm:text-[9px] text-gray-500 dark:text-gray-500 leading-tight truncate italic">
             Inicia sesión para ver detalles
           </p>
         )}
@@ -166,7 +166,7 @@ const SessionCard: React.FC<SessionCardProps> = ({
         e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.12)';
       }}
       onClick={() => onDoubleClick(session)}
-      className="h-full p-2 rounded-lg flex flex-col justify-between cursor-grab active:cursor-grabbing transition-all duration-200 ease-in-out relative group hover:scale-102 hover:shadow-xl"
+      className="h-full p-1.5 sm:p-2 rounded-lg flex flex-col justify-between cursor-grab active:cursor-grabbing transition-all duration-200 ease-in-out relative group hover:scale-102 hover:shadow-xl"
       style={{
         background: 'rgba(255, 255, 255, 0.15)',
         backdropFilter: 'blur(15px)',
@@ -178,40 +178,40 @@ const SessionCard: React.FC<SessionCardProps> = ({
     >
       
       <div>
-        <h3 className="font-medium text-sm leading-tight text-gray-900 dark:text-white" style={{fontSize: '11px'}}>
-          {truncateText(session.title, 40)}
+        <h3 className="font-medium text-[9px] sm:text-[11px] leading-tight text-gray-900 dark:text-white">
+          {truncateText(session.title, 35)}
         </h3>
         
         {canViewDetails ? (
           <>
             {speakers.length > 0 && (
-              <p className="text-xs mt-1 text-gray-400 dark:text-gray-400 leading-tight" style={{fontSize: '10px'}}>
-                {truncateText(speakers.map(s => s.name).join(', '), 35)}
+              <p className="text-[8px] sm:text-[10px] mt-1 text-gray-400 dark:text-gray-400 leading-tight">
+                {truncateText(speakers.map(s => s.name).join(', '), 30)}
               </p>
             )}
             
             {/* Información adicional en versión expandida */}
-            <div className="mt-2 flex flex-wrap gap-1">
+            <div className="mt-1 sm:mt-2 flex flex-wrap gap-0.5 sm:gap-1">
               {session.link && (
-                <span className="inline-flex items-center px-1 py-0.5 rounded text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                <span className="inline-flex items-center px-0.5 sm:px-1 py-0.5 rounded text-[7px] sm:text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
                   🔗 Zoom
                 </span>
               )}
               
-              <span className="inline-flex items-center px-1 py-0.5 rounded text-xs bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200">
-                  👥 {speakers.length} - {truncateText(speakers.map(s => s.name).join(', '), 15)}
+              <span className="inline-flex items-center px-0.5 sm:px-1 py-0.5 rounded text-[7px] sm:text-xs bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200">
+                👥 {speakers.length} - {truncateText(speakers.map(s => s.name).join(', '), 12)}
               </span>
             </div>
           </>
         ) : (
-          <p className="text-xs mt-1 text-gray-500 dark:text-gray-500 leading-tight italic" style={{fontSize: '10px'}}>
+          <p className="text-[8px] sm:text-[10px] mt-1 text-gray-500 dark:text-gray-500 leading-tight italic">
             Inicia sesión para ver detalles
           </p>
         )}
       </div>
 
       {/* Información de hora/día en la esquina (opcional) */}
-      <div className="absolute top-1 right-1 text-xs text-gray-400 opacity-60" style={{fontSize: '8px'}}>
+      <div className="absolute top-0.5 sm:top-1 right-0.5 sm:right-1 text-[6px] sm:text-[8px] text-gray-400 opacity-60">
         {session.time}
       </div>
     </div>

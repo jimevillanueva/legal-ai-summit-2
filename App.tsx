@@ -16,7 +16,6 @@ import { supabase, useSupabase } from './utils/supabaseClient';
 import { db } from './utils/db';
 import { checkForConflicts, decodeSchedule } from './utils/schedule';
 import { getInitialSchedule } from './constants';
-import './styles/App.css';
 
 type SesionSchedule = Record<string, Record<string, Sesion[]>>;
 
@@ -171,18 +170,32 @@ const MainApp: React.FC = () => {
   // Mostrar loading mientras se verifica la autenticación (solo si no estamos en callback)
   if (authLoading && !isAuthCallback) {
     return (
-      <div className="loading-container">
-        <div className="loading-content">
-          <div className="loading-spinner"></div>
-          <p className="loading-text">Cargando sesiones...</p>
+      <div className="fixed inset-0 flex items-center justify-center z-50" style={{background: 'linear-gradient(to right, #1e3a8a, #1e40af, #3730a3)'}}>
+        {/* Patrón de fondo similar al header */}
+        <div className="absolute inset-0 opacity-30" style={{backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")"}}></div>
+        
+        <div className="relative text-center p-4 sm:p-8 md:p-16 rounded-2xl sm:rounded-3xl bg-white/10 backdrop-blur-20 border border-white/20 min-w-[280px] sm:min-w-[400px] min-h-[200px] sm:min-h-[300px] flex flex-col justify-center items-center shadow-2xl mx-4" style={{boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'}}>
+          {/* Logo similar al header */}
+          <div className="mb-4 sm:mb-8 relative">
+            <div className="absolute inset-0 bg-white/20 rounded-xl blur-sm"></div>
+            <div className="relative bg-white/10 backdrop-blur-sm rounded-xl p-2 sm:p-4 border border-white/20">
+              <img src="/logos/LAIS.png" alt="Logo Cumbre IA Legal" className="h-8 sm:h-12 w-auto" />
+            </div>
+          </div>
+          
+          {/* Spinner con colores del header */}
+          <div className="w-12 h-12 sm:w-20 sm:h-20 border-4 sm:border-6 border-white/20 border-t-white rounded-full mx-auto mb-4 sm:mb-8 animate-spin" style={{boxShadow: '0 0 40px rgba(255, 255, 255, 0.3)'}}></div>
+          
+          {/* Texto con colores del header */}
+          <h2 className="text-white text-lg sm:text-2xl font-bold mb-2">Cumbre Legal AI</h2>
+          <p className="text-white/80 text-sm sm:text-lg font-medium animate-pulse" style={{letterSpacing: '1px'}}>Cargando sesiones...</p>
         </div>
       </div>
     );
   }
 
-
   return (
-    <div className="app-container">
+    <div className="h-screen w-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen overflow-x-hidden">
       <Header 
         onShare={() => {}} // TODO: Implementar share con sesiones
         onImportExport={() => setIsImportExportModalOpen(true)}

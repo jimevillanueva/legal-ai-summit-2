@@ -15,6 +15,7 @@ import { getSpeakerPhotoUrl, getCompanyLogoUrl } from '../utils/storage';
 import AlertaModal from './AlertaModal';
 import AppleCalendarLogo from './AppleCalendarLogo';
 
+
 interface EditSessionModalProps {
   session: Sesion | null;  // Cambiar de Session a Sesion
   isOpen: boolean;
@@ -23,6 +24,7 @@ interface EditSessionModalProps {
   onDelete: (sessionId: string) => void;
   canEdit: boolean;
   canViewDetails: boolean;
+  speakers: Event_Speaker[];
 }
 
 // Cambiar el tipo de formData
@@ -36,10 +38,13 @@ interface FormData {
   speakers?: Event_Speaker[]; // Usar Event_Speaker en lugar de Speaker
 }
 
-const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, onClose, onSave, onDelete, canEdit, canViewDetails }) => {
+const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, onClose, speakers, onSave, onDelete, canEdit, canViewDetails }) => {
   const [formData, setFormData] = useState<FormData>({}); // Cambiar tipo
   const [speakersText, setSpeakersText] = useState('');
-  const [speakers, setSpeakers] = useState<Event_Speaker[]>([]);
+  const [searchTerm, setSearchTerm] = useState(''); // Nuevo estado para el buscador
+  const [filteredSpeakers, setFilteredSpeakers] = useState<Event_Speaker[]>([]); // Nuevo estado para speakers filtrados
+  // Eliminar el estado local de speakers ya que ahora viene como prop
+  // const [speakers, setSpeakers] = useState<Event_Speaker[]>([]);
   const [alertaModal, setAlertaModal] = useState<{
     isOpen: boolean;
     type: 'eliminar' | 'validacion';
@@ -70,13 +75,14 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
 
   useEffect(() => {
     if (session) {
-      obtenerSpeakers();
+      // Ya no necesitamos cargar speakers aquí
+      // obtenerSpeakers();
       // Solo cargar speakers si la sesión tiene ID (no es nueva)
       if (session.id) {
         cargarSpeakersDeSesion(session.id);
       }
       setFormData({
-        title: session.title, // Ya no es 'tittle'
+        title: session.title,
         notes: session.description,
         zoomLink: session.link,
         borderColor: session.color,
@@ -87,43 +93,90 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
       setFormData({});
       setSpeakersText('');
     }
-  }, [session]);
+  }, [session, speakers]); // Agregar speakers como dependencia
 
   useEffect(() => {
   }, [formData.speakers]);
 
+  // Simplificar cargarSpeakersDeSesion ya que speakers viene como prop
   const cargarSpeakersDeSesion = async (sesionId: string) => {
     try {
       // Obtener las relaciones speaker-session
-      const speakerSesions = await speaker_SesionService.getAllSpeaker_SesionsBySesionId(sesionId);
+      const speakerSessiones = await speaker_SesionService.getAllSpeaker_SesionsBySesionId(sesionId);
       
-      // Obtener los speakers completos basados en los IDs
-      const speakerIds = speakerSesions.map(ss => ss.speaker_id);
-      const allSpeakers = await event_SpeakerService.getAllEvent_Speakers();
-      const sessionSpeakers = allSpeakers.filter(speaker => speakerIds.includes(speaker.id));
+      if (speakerSessiones.length === 0) {
+        setFormData(prev => ({
+          ...prev,
+          speakers: []
+        }));
+        setSpeakersText('');
+        return;
+      }
+
+      // Usar los speakers que vienen como prop en lugar de cargarlos
+      const sessionSpeakers = speakerSessiones
+        .map(ss => speakers.find(s => s.id === ss.speaker_id))
+        .filter((speaker): speaker is Event_Speaker => speaker !== undefined);
       
       // IMPORTANTE: Actualizar formData con los speakers cargados
       setFormData(prev => ({
         ...prev,
-        speakers: sessionSpeakers // Ahora sessionSpeakers son Event_Speaker[]
+        speakers: sessionSpeakers
       }));
-      
+
       setSpeakersText(sessionSpeakers.map(s => s.name).join(', '));
       
     } catch (error) {
       console.error('Error al cargar speakers de la sesión:', error);
+      setFormData(prev => ({
+        ...prev,
+        speakers: []
+      }));
+      setSpeakersText('');
     }
   };
 
-  const obtenerSpeakers = async () => {
-    const data = await event_SpeakerService.getAllEvent_Speakers();
-    setSpeakers(data);
-  }
+  // Eliminar obtenerSpeakers ya que speakers viene como prop
+  // const obtenerSpeakers = async () => {
+  //   const data = await event_SpeakerService.getAllEvent_Speakers();
+  //   setSpeakers(data);
+  // }
 
   // También agregar log en formData.speakers
   useEffect(() => {
 
   }, [formData.speakers]);
+
+  // Función para buscar speakers
+  const searchSpeakers = async (searchQuery: string) => {
+    if (!searchQuery.trim()) {
+      setFilteredSpeakers(speakers);
+      return;
+    }
+
+    try {
+      const searchResults = await event_SpeakerService.getEvent_SpeakersByName(searchQuery);
+      setFilteredSpeakers(searchResults);
+    } catch (error) {
+      console.error('Error al buscar speakers:', error);
+      setFilteredSpeakers(speakers);
+    }
+  };
+
+  // Efecto para manejar la búsqueda
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      searchSpeakers(searchTerm);
+    }, 300); // Debounce de 300ms
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, speakers]);
+
+  // Inicializar filteredSpeakers cuando cambien los speakers
+  useEffect(() => {
+    setFilteredSpeakers(speakers);
+  }, [speakers]);
+
   if (!isOpen) return null;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -446,9 +499,7 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
               {/* Ponentes */}
               <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
                 <h4 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                  <span className="w-3 h-3 sm:w-4 sm:h-4 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
-                    👥
-                  </span>
+                <i className="fa-solid fa-users fa-lg mr-1" style={{color: '#12609b'}}></i>
                   Ponentes
                 </h4>
                 
@@ -523,7 +574,7 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                 ) : (
                   <div className="text-center py-6 sm:py-8 text-gray-500 dark:text-gray-400">
                     <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
-                      <span className="text-xl sm:text-2xl">👥</span>
+                    <i className="fa-solid fa-users fa-lg mr-1" style={{color: '#12609b'}}></i>
                     </div>
                     <p className="text-sm sm:text-lg font-medium">No hay ponentes asignados</p>
                     <p className="text-xs sm:text-sm">Esta sesión aún no tiene ponentes confirmados</p>
@@ -560,7 +611,7 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                 {formData.notes && (
                   <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3 sm:p-4 border border-amber-200 dark:border-amber-800">
                     <h4 className="text-xs sm:text-sm font-medium text-amber-800 dark:text-amber-200 mb-2 sm:mb-3 flex items-center gap-2">
-                      <span className="text-sm sm:text-lg">📝</span>
+                    <i className="fa-solid fa-comment fa-lg mr-1" style={{color: '#12609b'}}></i>
                       Notas
                     </h4>
                     <div className="bg-white dark:bg-amber-900/10 rounded-md p-2 sm:p-3 border">
@@ -576,7 +627,7 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
               {effectiveCanViewDetails && (
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-2 sm:p-3 border border-blue-200 dark:border-blue-800">
                   <h4 className="text-xs sm:text-sm font-medium text-blue-800 dark:text-blue-200 mb-2 flex items-center gap-2">
-                    <span className="text-sm sm:text-base">📅</span>
+                  <i className="fa-solid fa-calendar-days fa-lg mr-1" style={{color: '#12609b'}}></i>
                     Exportar a Calendario
                   </h4>
                   <div className="flex flex-col sm:flex-row gap-2">
@@ -652,7 +703,7 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                   <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-4 sm:p-6 border border-purple-200 dark:border-purple-800">
                     <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
                       <div className="w-6 h-6 sm:w-8 sm:h-8 bg-purple-500 rounded-lg flex items-center justify-center">
-                        <span className="text-white text-xs sm:text-sm font-bold"></span>
+                        <i className="fa-solid fa-users text-white text-sm sm:text-base"></i>
                       </div>
                       <h3 className="text-base sm:text-lg font-semibold text-purple-900 dark:text-purple-100">
                         Ponentes <span className="text-red-500">*</span>
@@ -722,7 +773,7 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                           ) : (
                             <div className="flex flex-col items-center justify-center h-14 sm:h-16 text-gray-500 dark:text-gray-400">
                               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-2 sm:mb-3">
-                                <span className="text-lg sm:text-xl">👥</span>
+                              <i className="fa-solid fa-users fa-lg mr-1" style={{color: '#12609b'}}></i>
                               </div>
                               <p className="text-xs sm:text-sm font-medium">Ningún ponente seleccionado</p>
                               <p className="text-xs sm:text-sm">Selecciona ponentes de la lista de abajo</p>
@@ -737,8 +788,33 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                           <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
                           Disponibles
                         </h4>
+                        
+                        {/* Buscador de Speakers */}
+                        <div className="mb-3">
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <i className="fa-solid fa-search text-gray-400 text-sm"></i>
+                            </div>
+                            <input
+                              type="text"
+                              placeholder="Buscar ponentes por nombre..."
+                              value={searchTerm}
+                              onChange={(e) => setSearchTerm(e.target.value)}
+                              className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                            />
+                            {searchTerm && (
+                              <button
+                                onClick={() => setSearchTerm('')}
+                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                              >
+                                <i className="fa-solid fa-times text-sm"></i>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
                         <div className="bg-white dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 max-h-48 sm:max-h-64 overflow-y-auto">
-                          {speakers
+                          {filteredSpeakers
                             .filter(speaker => !formData.speakers?.some(s => s.id === speaker.id))
                             .map(speaker => (
                               <button
@@ -793,12 +869,21 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                                 </div>
                               </button>
                             ))}
-                          {speakers.filter(speaker => !formData.speakers?.some(s => s.id === speaker.id)).length === 0 && (
+                          {filteredSpeakers.filter(speaker => !formData.speakers?.some(s => s.id === speaker.id)).length === 0 && (
                             <div className="flex flex-col items-center justify-center py-6 sm:py-8 text-gray-500 dark:text-gray-400">
                               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-2 sm:mb-3">
-                                <span className="text-lg sm:text-xl">✅</span>
+                                {searchTerm ? (
+                                  <i className="fa-solid fa-search text-lg" style={{color: '#12609b'}}></i>
+                                ) : (
+                                  <span className="text-lg sm:text-xl">✅</span>
+                                )}
                               </div>
-                              <p className="text-sm sm:text-lg font-medium">Todos los ponentes han sido seleccionados</p>
+                              <p className="text-sm sm:text-lg font-medium">
+                                {searchTerm ? 'No se encontraron ponentes' : 'Todos los ponentes han sido seleccionados'}
+                              </p>
+                              {searchTerm && (
+                                <p className="text-xs sm:text-sm">Intenta con otro término de búsqueda</p>
+                              )}
                             </div>
                           )}
                         </div>
@@ -810,7 +895,7 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                   <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl p-4 sm:p-6 border border-amber-200 dark:border-amber-800">
                     <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
                       <div className="w-6 h-6 sm:w-8 sm:h-8 bg-amber-500 rounded-lg flex items-center justify-center">
-                        <span className="text-white text-xs sm:text-sm font-bold"></span>
+                        <i className="fa-solid fa-comment text-white text-sm sm:text-base"></i>
                       </div>
                       <h3 className="text-base sm:text-lg font-semibold text-amber-900 dark:text-amber-100">Detalles Adicionales</h3>
                     </div>
@@ -1030,7 +1115,7 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
               {effectiveCanViewDetails && (
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-2 sm:p-3 border border-blue-200 dark:border-blue-800">
                   <h4 className="text-xs sm:text-sm font-medium text-blue-800 dark:text-blue-200 mb-2 flex items-center gap-2">
-                    <span className="text-sm sm:text-base">📅</span>
+                  <i className="fa-solid fa-calendar-days fa-lg mr-1" style={{color: '#12609b'}}></i>
                     Exportar a Calendario
                   </h4>
                   <div className="flex flex-col sm:flex-row gap-2">

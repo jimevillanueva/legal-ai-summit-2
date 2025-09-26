@@ -16,6 +16,8 @@ import { supabase, useSupabase } from './utils/supabaseClient';
 import { db } from './utils/db';
 import { checkForConflicts, decodeSchedule } from './utils/schedule';
 import { getInitialSchedule } from './constants';
+import { event_SpeakerService } from './services/Event_speakersService';
+import { Event_Speaker } from './types/Event_Speaker';
 
 type SesionSchedule = Record<string, Record<string, Sesion[]>>;
 
@@ -28,6 +30,7 @@ const MainApp: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const { user, loading: authLoading, canEdit, canView, canViewDetails, role } = useAuth();
   const location = useLocation();
+  const [speakers, setSpeakers] = useState<Event_Speaker[]>([]);
 
   // Verificar si estamos en la ruta de callback
   const isAuthCallback = location.pathname === '/auth/callback';
@@ -50,8 +53,14 @@ const MainApp: React.FC = () => {
     }
   }, []);
 
+  const cargarSpeakers = useCallback(async () => {
+    const data = await event_SpeakerService.getAllEvent_Speakers();
+    setSpeakers(data);
+  }, []);
+
   useEffect(() => {
-    cargarSesiones();
+    cargarSesiones(); 
+    cargarSpeakers();
 
     // Configurar realtime solo si hay usuario autenticado
     if (useSupabase() && supabase && user) {
@@ -201,6 +210,7 @@ const MainApp: React.FC = () => {
         onImportExport={() => setIsImportExportModalOpen(true)}
       />
       <ScheduleGrid 
+        speakers={speakers}
         sesiones={sesiones}
         onSessionDrop={handleSessionDrop}
         onEditSession={handleEditSession}
@@ -209,6 +219,7 @@ const MainApp: React.FC = () => {
         canViewDetails={canViewDetails}
       />
       <EditSessionModal
+        speakers={speakers}
         isOpen={isEditModalOpen}
         session={editingSession}
         onClose={() => setIsEditModalOpen(false)}

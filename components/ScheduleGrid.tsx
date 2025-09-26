@@ -16,6 +16,7 @@ interface ScheduleGridProps {
   onAddSession: (day: string, time: string) => void;
   canEdit: boolean;
   canViewDetails: boolean;
+  speakers: Event_Speaker[];
 }
 
 const ScheduleGrid: React.FC<ScheduleGridProps> = ({ 
@@ -24,11 +25,13 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({
   onEditSession, 
   onAddSession, 
   canEdit, 
-  canViewDetails 
+  canViewDetails,
+  speakers
 }) => {
   const [sesiones, setSesiones] = useState<Sesion[]>([]);
   const [sessionSpeakers, setSessionSpeakers] = useState<Record<string, Event_Speaker[]>>({});
   const [loading, setLoading] = useState(true);
+  const [allSpeakers, setAllSpeakers] = useState<Event_Speaker[]>([]);
 
   // ... (normalizarSesion, cargarSpeakersParaSesiones, organizarSesionesPorDiaYHora se mantienen igual)
   const normalizarSesion = (s: any) => {
@@ -43,7 +46,6 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({
 
   const cargarSpeakersParaSesiones = async (sesiones: Sesion[]) => {
     try {
-      const allSpeakers = await event_SpeakerService.getAllEvent_Speakers();
       const results = await Promise.all(
         sesiones.map(sesion => speaker_SesionService.getAllSpeaker_SesionsBySesionId(sesion.id))
       );
@@ -79,6 +81,7 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({
   };
 
   useEffect(() => {
+    setAllSpeakers(speakers);
     if (sesionesProp && sesionesProp.length > 0) {
       const data = sesionesProp.map(normalizarSesion);
       setSesiones(data);

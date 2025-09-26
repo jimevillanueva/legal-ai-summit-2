@@ -447,7 +447,6 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
             <h2 className="text-lg sm:text-2xl font-bold text-blue-800 dark:text-blue-100">
               {!effectiveCanViewDetails ? 'Sesión' : (!effectiveCanEdit ? 'Ver Sesión' : (session?.id ? 'Editar Sesión' : 'Agregar Sesión'))}
               {!effectiveCanViewDetails && <span className="ml-2 text-xs sm:text-sm font-normal text-gray-500">(Inicia sesión para ver detalles)</span>}
-              {!effectiveCanEdit && effectiveCanViewDetails && <span className="ml-2 text-xs sm:text-sm font-normal text-gray-500">(Solo lectura)</span>}
             </h2>
             <button onClick={onClose} className="text-gray-500 hover:text-gray-800 dark:hover:text-gray-200">
               <XIcon />
@@ -632,7 +631,7 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                   <div className="flex flex-col sm:flex-row gap-2">
                     <button
                       onClick={handleExportToGoogle}
-                      className="flex-1 inline-flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-red-400 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-red-500 transition-colors shadow-sm"
+                      className="flex-1 inline-flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-blue-500 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-blue-600 transition-colors shadow-sm"
                     >
                       <svg className="w-6 h-6 sm:w-8 sm:h-8" viewBox="-11.4 -19 98.8 114" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path fill="#fff" d="M58 18H18v40h40z"/>
@@ -648,7 +647,7 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                     </button>
                      <button
                       onClick={handleExportToApple}
-                      className="flex-1 inline-flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-gray-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors shadow-sm"
+                      className="flex-1 inline-flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-blue-500 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-blue-600 transition-colors shadow-sm"
                     >
                       <AppleCalendarLogo className="w-6 h-6 sm:w-8 sm:h-8" />
                       <span className="text-xs sm:text-sm">Apple Calendar</span>
@@ -1100,7 +1099,7 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                     </button>
                      <button
                       onClick={handleExportToApple}
-                      className="flex-1 inline-flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-gray-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors shadow-sm"
+                      className="flex-1 inline-flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-blue-500 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-blue-600 transition-colors shadow-sm"
                     >
                       <AppleCalendarLogo className="w-6 h-6 sm:w-8 sm:h-8" />
                       <span className="text-xs sm:text-sm">Apple Calendar</span>

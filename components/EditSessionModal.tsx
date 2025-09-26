@@ -212,7 +212,6 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
     const camposFaltantes: string[] = [];
     if (!formData.title?.trim()) camposFaltantes.push('Título de la sesión');
     if (!formData.speakers || formData.speakers.length === 0) camposFaltantes.push('Al menos un ponente');
-    if (!formData.zoomLink) camposFaltantes.push('Enlace de Zoom');
     if (!formData.day?.trim()) camposFaltantes.push('Día');
     if (!formData.time?.trim()) camposFaltantes.push('Hora');
 
@@ -499,14 +498,14 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
               {/* Ponentes */}
               <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
                 <h4 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                <i className="fa-solid fa-users fa-lg mr-1" style={{color: '#12609b'}}></i>
+                  <i className="fa-solid fa-users text-gray-600"></i>
                   Ponentes
                 </h4>
                 
                 {formData.speakers && formData.speakers.length > 0 ? (
                   <div className="space-y-2 sm:space-y-3">
                     {formData.speakers.map(speaker => (
-                      <div key={speaker.id} className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-700/50 dark:to-blue-900/20 rounded-lg border border-gray-100 dark:border-gray-600">
+                      <div key={speaker.id} className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-600/30 rounded-lg border border-gray-100 dark:border-gray-600">
                         {/* Avatar con foto real o inicial */}
                         <div className="flex-shrink-0">
                           {speaker.photo && speaker.photo.trim() ? (
@@ -574,7 +573,7 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                 ) : (
                   <div className="text-center py-6 sm:py-8 text-gray-500 dark:text-gray-400">
                     <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
-                    <i className="fa-solid fa-users fa-lg mr-1" style={{color: '#12609b'}}></i>
+                      <i className="fa-solid fa-users text-gray-600 text-lg"></i>
                     </div>
                     <p className="text-sm sm:text-lg font-medium">No hay ponentes asignados</p>
                     <p className="text-xs sm:text-sm">Esta sesión aún no tiene ponentes confirmados</p>
@@ -586,15 +585,15 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
               <div className="space-y-3 sm:space-y-4">
                 {/* Enlace de Zoom */}
                 {formData.zoomLink && (
-                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 sm:p-4 border border-blue-200 dark:border-blue-800">
+                  <div className="bg-gray-50 dark:bg-gray-800/30 rounded-lg p-3 sm:p-4 border border-gray-200 dark:border-gray-700">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0">
-                      <h4 className="text-xs sm:text-sm font-medium text-blue-800 dark:text-blue-200 flex items-center gap-2">
-                        <span className="text-sm sm:text-lg">🔗</span>
+                      <h4 className="text-xs sm:text-sm font-medium text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                        <i className="fa-solid fa-video text-gray-600"></i>
                         Enlace de Zoom
                       </h4>
                       <button 
                         onClick={handleZoomClick}
-                        className="inline-flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-md"
+                        className="inline-flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors shadow-md"
                       >
                         <svg className="w-3 h-3 sm:w-4 sm:h-4" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M2 11.6C2 8.23969 2 6.55953 2.65396 5.27606C3.2292 4.14708 4.14708 3.2292 5.27606 2.65396C6.55953 2 8.23969 2 11.6 2H20.4C23.7603 2 25.4405 2 26.7239 2.65396C27.8529 3.2292 28.7708 4.14708 29.346 5.27606C30 6.55953 30 8.23969 30 11.6V20.4C30 23.7603 30 25.4405 29.346 26.7239C28.7708 27.8529 27.8529 28.7708 26.7239 29.346C25.4405 30 23.7603 30 20.4 30H11.6C8.23969 30 6.55953 30 5.27606 29.346C4.14708 28.7708 3.2292 27.8529 2.65396 26.7239C2 25.4405 2 23.7603 2 20.4V11.6Z" fill="white"/>
@@ -609,13 +608,13 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
 
                 {/* Notas */}
                 {formData.notes && (
-                  <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3 sm:p-4 border border-amber-200 dark:border-amber-800">
-                    <h4 className="text-xs sm:text-sm font-medium text-amber-800 dark:text-amber-200 mb-2 sm:mb-3 flex items-center gap-2">
-                    <i className="fa-solid fa-comment fa-lg mr-1" style={{color: '#12609b'}}></i>
-                      Notas
-                    </h4>
-                    <div className="bg-white dark:bg-amber-900/10 rounded-md p-2 sm:p-3 border">
-                      <p className="text-xs sm:text-sm text-amber-900 dark:text-amber-100 leading-relaxed whitespace-pre-wrap">
+                  <div className="bg-gray-50 dark:bg-gray-800/30 rounded-lg p-3 sm:p-4 border border-gray-200 dark:border-gray-700">
+                      <h4 className="text-xs sm:text-sm font-medium text-gray-800 dark:text-gray-200 mb-2 sm:mb-3 flex items-center gap-2">
+                        <i className="fa-solid fa-sticky-note text-gray-600"></i>
+                        Notas
+                      </h4>
+                    <div className="bg-white dark:bg-gray-700/20 rounded-md p-2 sm:p-3 border border-gray-200 dark:border-gray-600">
+                      <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
                         {formData.notes}
                       </p>
                     </div>
@@ -625,9 +624,9 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
 
               {/* Botones de exportación - Solo para usuarios registrados */}
               {effectiveCanViewDetails && (
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-2 sm:p-3 border border-blue-200 dark:border-blue-800">
-                  <h4 className="text-xs sm:text-sm font-medium text-blue-800 dark:text-blue-200 mb-2 flex items-center gap-2">
-                  <i className="fa-solid fa-calendar-days fa-lg mr-1" style={{color: '#12609b'}}></i>
+                <div className="bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-800/30 dark:to-slate-800/30 rounded-lg p-2 sm:p-3 border border-gray-200 dark:border-gray-700">
+                  <h4 className="text-xs sm:text-sm font-medium text-gray-800 dark:text-gray-200 mb-2 flex items-center gap-2">
+                    <i className="fa-solid fa-calendar-plus text-gray-600"></i>
                     Exportar a Calendario
                   </h4>
                   <div className="flex flex-col sm:flex-row gap-2">
@@ -669,16 +668,17 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
             // Vista de formulario para edición
             <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6" noValidate>
               {/* Título de la Sesión - Sección destacada */}
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 sm:p-6 border border-blue-200 dark:border-blue-800">
+              <div className="bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-800/30 dark:to-slate-800/30 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                    <span className="text-white text-xs sm:text-sm font-bold">📝</span>
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-600 rounded-lg flex items-center justify-center">
+                    <i className="fa-solid fa-file-text text-white text-xs sm:text-sm"></i>
                   </div>
-                  <h3 className="text-base sm:text-lg font-semibold text-blue-900 dark:text-blue-100">Información de la Sesión</h3>
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-200">Información de la Sesión</h3>
                 </div>
                 
                 <div>
-                  <label htmlFor="title" className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  <label htmlFor="title" className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                    <i className="fa-solid fa-heading text-gray-600"></i>
                     Título de la Sesión <span className="text-red-500">*</span>
                   </label>
                   <input 
@@ -687,10 +687,10 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                     id="title" 
                     value={formData.title || ''} 
                     onChange={handleChange} 
-                    className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm sm:text-base ${
+                    className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500/20 text-sm sm:text-base ${
                       !effectiveCanEdit 
                         ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed border-gray-200 dark:border-gray-600' 
-                        : 'border-gray-300 dark:border-gray-600 dark:bg-gray-700 hover:border-blue-400 focus:border-blue-500'
+                        : 'border-gray-300 dark:border-gray-600 dark:bg-gray-700 hover:border-gray-400 focus:border-gray-500'
                     }`}
                     placeholder="Ingresa el título de la sesión..."
                   />
@@ -700,12 +700,12 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
               {effectiveCanViewDetails && (
                 <>
                   {/* Ponentes/Participantes - Sección mejorada */}
-                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-4 sm:p-6 border border-purple-200 dark:border-purple-800">
+                  <div className="bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-800/30 dark:to-slate-800/30 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
                     <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                      <div className="w-6 h-6 sm:w-8 sm:h-8 bg-purple-500 rounded-lg flex items-center justify-center">
-                        <i className="fa-solid fa-users text-white text-sm sm:text-base"></i>
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-600 rounded-lg flex items-center justify-center">
+                        <i className="fa-solid fa-users text-white text-xs sm:text-sm"></i>
                       </div>
-                      <h3 className="text-base sm:text-lg font-semibold text-purple-900 dark:text-purple-100">
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-200">
                         Ponentes <span className="text-red-500">*</span>
                       </h3>
                     </div>
@@ -773,7 +773,7 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                           ) : (
                             <div className="flex flex-col items-center justify-center h-14 sm:h-16 text-gray-500 dark:text-gray-400">
                               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-2 sm:mb-3">
-                              <i className="fa-solid fa-users fa-lg mr-1" style={{color: '#12609b'}}></i>
+                                <i className="fa-solid fa-users text-gray-600"></i>
                               </div>
                               <p className="text-xs sm:text-sm font-medium">Ningún ponente seleccionado</p>
                               <p className="text-xs sm:text-sm">Selecciona ponentes de la lista de abajo</p>
@@ -800,7 +800,7 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                               placeholder="Buscar ponentes por nombre..."
                               value={searchTerm}
                               onChange={(e) => setSearchTerm(e.target.value)}
-                              className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                              className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:text-white hover:border-gray-400"
                             />
                             {searchTerm && (
                               <button
@@ -858,7 +858,6 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                                           }}
                                         />
                                       )}
-                                      <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">{speaker.company}</span>
                                     </div>
                                   )}
                                 </div>
@@ -873,9 +872,9 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                             <div className="flex flex-col items-center justify-center py-6 sm:py-8 text-gray-500 dark:text-gray-400">
                               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-2 sm:mb-3">
                                 {searchTerm ? (
-                                  <i className="fa-solid fa-search text-lg" style={{color: '#12609b'}}></i>
+                                  <i className="fa-solid fa-search text-gray-600 text-lg"></i>
                                 ) : (
-                                  <span className="text-lg sm:text-xl">✅</span>
+                                  <i className="fa-solid fa-check-circle text-gray-600 text-lg"></i>
                                 )}
                               </div>
                               <p className="text-sm sm:text-lg font-medium">
@@ -892,18 +891,19 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                   </div>
 
                   {/* Detalles Adicionales */}
-                  <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl p-4 sm:p-6 border border-amber-200 dark:border-amber-800">
+                  <div className="bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-800/30 dark:to-slate-800/30 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
                     <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                      <div className="w-6 h-6 sm:w-8 sm:h-8 bg-amber-500 rounded-lg flex items-center justify-center">
-                        <i className="fa-solid fa-comment text-white text-sm sm:text-base"></i>
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-600 rounded-lg flex items-center justify-center">
+                        <i className="fa-solid fa-clipboard-list text-white text-xs sm:text-sm"></i>
                       </div>
-                      <h3 className="text-base sm:text-lg font-semibold text-amber-900 dark:text-amber-100">Detalles Adicionales</h3>
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-200">Detalles Adicionales</h3>
                     </div>
 
                     <div className="space-y-3 sm:space-y-4">
                       {/* Notas */}
                       <div>
-                        <label htmlFor="notes" className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        <label htmlFor="notes" className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                          <i className="fa-solid fa-sticky-note text-gray-600"></i>
                           Notas
                         </label>
                         <textarea 
@@ -914,24 +914,23 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                           rows={4} 
                           disabled={!effectiveCanEdit}
                           placeholder="Información adicional sobre la sesión, agenda, materiales necesarios, etc..." 
-                          className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 resize-none text-sm sm:text-base ${
+                          className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500/20 resize-none text-sm sm:text-base ${
                             !effectiveCanEdit 
                               ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed border-gray-200 dark:border-gray-600' 
-                              : 'border-gray-300 dark:border-gray-600 dark:bg-gray-700 hover:border-amber-400 focus:border-amber-500'
+                              : 'border-gray-300 dark:border-gray-600 dark:bg-gray-700 hover:border-gray-400 focus:border-gray-500'
                           }`}
                         />
                       </div>
 
                       {/* Enlace de Zoom */}
                       <div>
-                        <label htmlFor="zoomLink" className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        <label htmlFor="zoomLink" className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                          <i className="fa-solid fa-video text-gray-600"></i>
                           Enlace de Zoom
                         </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                            </svg>
+                            <i className="fa-solid fa-video text-gray-400 text-sm"></i>
                           </div>
                           <input 
                             type="url" 
@@ -941,10 +940,10 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                             onChange={handleChange} 
                             disabled={!effectiveCanEdit}
                             placeholder="https://zoom.us/j/123456789"
-                            className={`w-full pl-10 pr-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 text-sm sm:text-base ${
+                            className={`w-full pl-10 pr-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500/20 text-sm sm:text-base ${
                               !effectiveCanEdit 
                                 ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed border-gray-200 dark:border-gray-600' 
-                                : 'border-gray-300 dark:border-gray-600 dark:bg-gray-700 hover:border-amber-400 focus:border-amber-500'
+                                : 'border-gray-300 dark:border-gray-600 dark:bg-gray-700 hover:border-gray-400 focus:border-gray-500'
                             }`}
                           />
                         </div>
@@ -953,17 +952,18 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                   </div>
 
                   {/* Programación */}
-                  <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl p-4 sm:p-6 border border-emerald-200 dark:border-emerald-800">
+                  <div className="bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-800/30 dark:to-slate-800/30 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
                     <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                      <div className="w-6 h-6 sm:w-8 sm:h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
-                        <span className="text-white text-xs sm:text-sm font-bold">⏰</span>
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-600 rounded-lg flex items-center justify-center">
+                        <i className="fa-solid fa-clock text-white text-xs sm:text-sm"></i>
                       </div>
-                      <h3 className="text-base sm:text-lg font-semibold text-emerald-900 dark:text-emerald-100">Programación</h3>
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-200">Programación</h3>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       <div>
-                        <label htmlFor="day" className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        <label htmlFor="day" className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                          <i className="fa-solid fa-calendar-day text-gray-600"></i>
                           Día <span className="text-red-500">*</span>
                         </label>
                         <select 
@@ -972,10 +972,10 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                           value={formData.day || ''} 
                           onChange={handleChange} 
                           disabled={!effectiveCanEdit}
-                          className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 text-sm sm:text-base ${
+                          className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500/20 text-sm sm:text-base ${
                             !effectiveCanEdit 
                               ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed border-gray-200 dark:border-gray-600 opacity-70' 
-                              : 'border-gray-300 dark:border-gray-600 dark:bg-gray-700 hover:border-emerald-400 focus:border-emerald-500'
+                              : 'border-gray-300 dark:border-gray-600 dark:bg-gray-700 hover:border-gray-400 focus:border-gray-500'
                           }`}
                         >
                           <option value="">Selecciona un día</option>
@@ -983,7 +983,8 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                         </select>
                       </div>
                       <div>
-                        <label htmlFor="time" className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        <label htmlFor="time" className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                          <i className="fa-solid fa-clock text-gray-600"></i>
                           Hora <span className="text-red-500">*</span>
                         </label>
                         <select 
@@ -992,10 +993,10 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                           value={formData.time || ''} 
                           onChange={handleChange} 
                           disabled={!effectiveCanEdit}
-                          className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 text-sm sm:text-base ${
+                          className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500/20 text-sm sm:text-base ${
                             !effectiveCanEdit 
                               ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed border-gray-200 dark:border-gray-600 opacity-70' 
-                              : 'border-gray-300 dark:border-gray-600 dark:bg-gray-700 hover:border-emerald-400 focus:border-emerald-500'
+                              : 'border-gray-300 dark:border-gray-600 dark:bg-gray-700 hover:border-gray-400 focus:border-gray-500'
                           }`}
                         >
                           <option value="">Selecciona una hora</option>
@@ -1007,16 +1008,17 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                   
                   {/* Color de Línea Lateral - Solo para editores */}
                   {effectiveCanEdit && (
-                    <div className="bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-900/20 dark:to-pink-900/20 rounded-xl p-4 sm:p-6 border border-rose-200 dark:border-rose-800">
+                    <div className="bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-800/30 dark:to-slate-800/30 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
                       <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-rose-500 rounded-lg flex items-center justify-center">
-                          <span className="text-white text-xs sm:text-sm font-bold">🎨</span>
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-600 rounded-lg flex items-center justify-center">
+                          <i className="fa-solid fa-palette text-white text-xs sm:text-sm"></i>
                         </div>
-                        <h3 className="text-base sm:text-lg font-semibold text-rose-900 dark:text-rose-100">Personalización</h3>
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-200">Personalización</h3>
                       </div>
 
                       <div>
-                        <label htmlFor="borderColor" className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                        <label htmlFor="borderColor" className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                          <i className="fa-solid fa-palette text-gray-600"></i>
                           Color de Línea Lateral
                         </label>
                         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-center">
@@ -1041,10 +1043,10 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                             onChange={handleChange}
                             value={formData.borderColor || '#6B7280'}
                             disabled={!effectiveCanEdit}
-                            className={`flex-1 px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-rose-500/20 text-center text-sm sm:text-base ${
+                            className={`flex-1 px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500/20 text-center text-sm sm:text-base ${
                               !effectiveCanEdit 
                                 ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed border-gray-200 dark:border-gray-600' 
-                                : 'border-gray-300 dark:border-gray-600 dark:bg-gray-700 hover:border-rose-400 focus:border-rose-500'
+                                : 'border-gray-300 dark:border-gray-600 dark:bg-gray-700 hover:border-gray-400 focus:border-gray-500'
                             }`}
                           >
                             <option value="#8B5CF6">Púrpura</option>
@@ -1072,56 +1074,17 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                 </>
               )}
 
-              {/* Botones de Acción - Mejorados */}
-              <div className="flex justify-between items-center pt-4 sm:pt-6 border-t border-gray-200 dark:border-gray-700">
-                <div className="flex gap-2">
-                  <button 
-                    type="button" 
-                    onClick={onClose} 
-                    className={`inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-lg border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500/20 transition-all duration-200 text-sm sm:text-base ${
-                      effectiveCanEdit && effectiveCanViewDetails ? '' : 'w-full'
-                    }`}
-                  >
-                    {effectiveCanEdit && effectiveCanViewDetails ? 'Cancelar' : 'Cerrar'}
-                  </button>
-                  {effectiveCanEdit && effectiveCanViewDetails && session?.id && (
-                    <button 
-                      type="button" 
-                      onClick={handleDelete} 
-                      className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg border-2 border-transparent bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-red-500/20 transition-all duration-200 shadow-lg hover:shadow-xl"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                      Eliminar
-                    </button>
-                  )}
-                </div>
-                <div className="flex-grow"></div>
-                {effectiveCanEdit && effectiveCanViewDetails && (
-                  <button 
-                    type="submit" 
-                    className="inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-lg border-2 border-transparent bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 shadow-lg hover:shadow-xl"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    Guardar
-                  </button>
-                )}
-              </div>
-
-              {/* Sección de Exportación - Mejorada */}
+              {/* Sección de Exportación - Antes de los botones de acción */}
               {effectiveCanViewDetails && (
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-2 sm:p-3 border border-blue-200 dark:border-blue-800">
-                  <h4 className="text-xs sm:text-sm font-medium text-blue-800 dark:text-blue-200 mb-2 flex items-center gap-2">
-                  <i className="fa-solid fa-calendar-days fa-lg mr-1" style={{color: '#12609b'}}></i>
+                <div className="bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-800/30 dark:to-slate-800/30 rounded-lg p-2 sm:p-3 border border-gray-200 dark:border-gray-700">
+                  <h4 className="text-xs sm:text-sm font-medium text-gray-800 dark:text-gray-200 mb-2 flex items-center gap-2">
+                    <i className="fa-solid fa-calendar-plus text-gray-600"></i>
                     Exportar a Calendario
                   </h4>
                   <div className="flex flex-col sm:flex-row gap-2">
                     <button
                       onClick={handleExportToGoogle}
-                      className="flex-1 inline-flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-red-400 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-red-500 transition-colors shadow-sm"
+                      className="flex-1 inline-flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-gray-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors shadow-sm"
                     >
                       <svg className="w-6 h-6 sm:w-8 sm:h-8" viewBox="-11.4 -19 98.8 114" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path fill="#fff" d="M58 18H18v40h40z"/>
@@ -1145,6 +1108,46 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                   </div>
                 </div>
               )}
+
+              {/* Botones de Acción - Mejorados */}
+              <div className="flex justify-between items-center pt-4 sm:pt-6 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex gap-2">
+                  {effectiveCanEdit && effectiveCanViewDetails && session?.id && (
+                    <button 
+                      type="button" 
+                      onClick={handleDelete} 
+                      className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg border-2 border-transparent bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-red-500/20 transition-all duration-200 shadow-lg hover:shadow-xl"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      Eliminar
+                    </button>
+                  )}
+                  <button 
+                    type="button" 
+                    onClick={onClose} 
+                    className={`inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-lg border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500/20 transition-all duration-200 text-sm sm:text-base ${
+                      effectiveCanEdit && effectiveCanViewDetails ? '' : 'w-full'
+                    }`}
+                  >
+                    {effectiveCanEdit && effectiveCanViewDetails ? 'Cancelar' : 'Cerrar'}
+                  </button>
+                </div>
+                <div className="flex-grow"></div>
+                {effectiveCanEdit && effectiveCanViewDetails && (
+                  <button 
+                    type="submit" 
+                    className="inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-lg border-2 border-transparent bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 shadow-lg hover:shadow-xl"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Guardar
+                  </button>
+                )}
+              </div>
+
             </form>
           )}
         </div>

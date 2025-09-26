@@ -148,13 +148,13 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({
     <div className="flex-grow p-0 overflow-auto">
       
       {/* CLAVE: Usamos 'fr' para TODAS las columnas. 
-        - La primera columna (tiempo) tiene un peso menor (ej: 0.5fr) para que sea estrecha.
-        - Las 5 columnas de días tienen un peso de 1fr cada una.
+        - La primera columna (tiempo) tiene un peso menor (0.3fr móvil, 0.4fr desktop) para que sea estrecha.
+        - Las columnas de días tienen un peso de 1fr cada una.
         - Esto garantiza que la suma de todos los anchos sea el 100% del contenedor.
       */}
       <div className={`grid gap-0.5 sm:gap-1 
-                      grid-cols-[0.5fr_repeat(${numDays},1fr)] 
-                      lg:grid-cols-[0.8fr_repeat(${numDays},1fr)]`}>
+                      grid-cols-[0.3fr_repeat(${numDays},1fr)] 
+                      lg:grid-cols-[0.4fr_repeat(${numDays},1fr)]`}>
         
         {/* Corner vacío */}
         <div className="sticky top-0 z-10"></div>
@@ -201,15 +201,19 @@ const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={(e) => handleDrop(e, day, time)}
-                  className="min-h-12 sm:min-h-16 md:min-h-20 lg:min-h-24 
+                  className={`min-h-12 sm:min-h-16 md:min-h-20 lg:min-h-24 
                              border border-gray-200 dark:border-gray-700 
-                             bg-white dark:bg-gray-800 transition-all duration-200 relative"
+                             transition-all duration-200 relative
+                             ${sessions.length > 0 
+                               ? 'bg-white dark:bg-gray-800' 
+                               : 'bg-gray-200 dark:bg-gray-900 hover:bg-gray-300 dark:hover:bg-gray-800'
+                             }`}
                 >
                   {sessions.length > 0 ? (
                     <div className="h-full overflow-y-auto">
-                      <div className="p-0.5 space-y-0.5"> 
+                      <div className={`h-full ${sessions.length === 1 ? 'p-0' : 'p-0.5 space-y-0.5'}`}> 
                         {sessions.slice(0, maxSessionsPerSlot).map((session, index) => (
-                          <div key={session.id} className="relative">
+                          <div key={session.id} className={`relative ${sessions.length === 1 ? 'h-full' : ''}`}>
                             {/* Uso condicional de SessionCardMobile */}
                             <div className="block lg:hidden">
                               <SessionCardMobile 

@@ -9,7 +9,7 @@ export const DAYS = [
   '2025-10-03', // Viernes
 ];
 
-export const TIMES = Array.from({ length: 13 }, (_, i) => `${8 + i}:00`); // 8:00 a 20:00 (Horario CDMX)
+export const TIMES = Array.from({ length: 11 }, (_, i) => `${8 + i}:00`); // 8:00 a 18:00 (Horario CDMX)
 
 
 export const SPEAKERS: Speaker[] = [

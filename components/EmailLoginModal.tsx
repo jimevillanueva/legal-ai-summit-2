@@ -23,7 +23,7 @@ const EmailLoginModal: React.FC<EmailLoginModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (email.trim()) {
-      await onLogin(email.trim());
+      await onLogin(email.trim().toLowerCase());
     }
   };
 
@@ -71,6 +71,17 @@ const EmailLoginModal: React.FC<EmailLoginModalProps> = ({
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3">
               <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                Si necesitas ayuda para ingresar, cuentanos tu caso {' '}
+                <a 
+                  href="https://docs.google.com/forms/d/e/1FAIpQLSfdTJVO_w8WBoEwn7918wiV083bv2sBOLqvZcT8XiLDHCa_OA/viewform"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  aquí y te ayudaremos
+                </a>
+              </p>
             </div>
           )}
 

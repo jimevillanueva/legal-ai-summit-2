@@ -6,9 +6,10 @@ import AdminWelcome from './AdminWelcome';
 
 interface ProtectedRouteProps {
   children?: React.ReactNode;
+  requiredRole?: 'admin' | 'user';
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole = 'admin' }) => {
   const { user, loading: authLoading } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
@@ -46,7 +47,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
         } else if (profileData.rol === 'admin') {
           setIsAdmin(true);
           setShowLogin(false);
-          // Mostrar pantalla de bienvenida para admin autenticado
           return;
         } else {
           setIsAdmin(false);
@@ -94,7 +94,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   if (isAdmin) {
-    return <AdminWelcome />;
+    // Si hay children, los renderiza; si no, muestra AdminWelcome
+    return children ? children : <AdminWelcome />;
   }
 
   // Fallback - no debería llegar aquí

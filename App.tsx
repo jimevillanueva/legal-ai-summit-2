@@ -18,6 +18,7 @@ import { checkForConflicts, decodeSchedule } from './utils/schedule';
 import { getInitialSchedule } from './constants';
 import { event_SpeakerService } from './services/Event_speakersService';
 import { Event_Speaker } from './types/Event_Speaker';
+import AddContact from './components/AddContact';
 
 type SesionSchedule = Record<string, Record<string, Sesion[]>>;
 
@@ -264,6 +265,13 @@ const AppContent: React.FC = () => {
       
       {/* Ruta protegida para admin */}
       <Route path="/admin" element={<ProtectedRoute />} />
+
+      {/* Ruta protegida para admin */}
+      <Route path="/add-contact" element={
+        <ProtectedRoute requiredRole="admin">
+          <AddContact />
+        </ProtectedRoute>
+      } />
       
       {/* Ruta principal */}
       <Route path="/" element={<MainApp />} />

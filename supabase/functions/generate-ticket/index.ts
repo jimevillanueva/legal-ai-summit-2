@@ -21,7 +21,7 @@ serve(async (req) => {
 
     const { data } = await req.json()
 
-    if (!data || !data.email || !data.userFirstname) {
+    if (!data || !data.email ) {
       throw new Error('Missing required fields: email and userFirstname')
     }
 
@@ -293,7 +293,7 @@ function generateTicketTemplate(data: any): string {
                             <div style="background: linear-gradient(135deg, rgba(14, 8, 254, 0.08) 0%, rgba(0, 212, 255, 0.08) 100%); border-radius: 12px; padding: 12px 18px; border: 2px solid rgba(0, 212, 255, 0.2); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); margin: 8px 0 0 0; position: relative; text-align: left;">
                                 <div style="position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(135deg, #00d4ff 0%, #5b3fff 100%); border-radius: 12px 12px 0 0;"></div>
                                 <span style="font-size: 16px; font-weight: 700; color: #1a1a2e; text-transform: uppercase; letter-spacing: 0.5px; background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-align: left;">
-                                   ${data.userFirstname || 'Asistente'}
+                                   ${data.userFirstname || data.email}
                                 </span>
                             </div>
                         </td>

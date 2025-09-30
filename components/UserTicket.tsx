@@ -219,7 +219,7 @@ const UserTicket: React.FC = () => {
             <p className={styles.infoOrganizer}>ORGANIZADO POR: {ticketData.organizer}</p>
                     <div className={styles.attendeeName}>
                       <span className={styles.nameHighlight}>
-                        {ticketData.attendeeName}
+                        {ticketData.attendeeName || ticketData.attendeeEmail}
                       </span>
                     </div>
           </div>

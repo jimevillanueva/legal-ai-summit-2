@@ -4,6 +4,7 @@ import { Contact } from '../types/Contact';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AlertaModal from './AlertaModal';
+import { EmailService } from '../utils/emailService';
 
 const AddContact: React.FC = () => {
   const navigate = useNavigate();
@@ -155,14 +156,36 @@ const AddContact: React.FC = () => {
       
       await contactService.createContact(normalizedContact);
       
-      // Éxito - mostrar mensaje y redirigir
-      setAlertModal({
-        isOpen: true,
-        type: 'exito',
-        title: 'Contacto creado',
-        message: 'El contacto se ha creado exitosamente.',
-        camposFaltantes: []
+      // Enviar ticket por email después de crear el contacto
+      const emailService = EmailService.getInstance();
+      const ticketResult = await emailService.sendTicketEmail({
+        to: normalizedContact.email,
+        user: {
+          id: normalizedContact.id || `contact-${Date.now()}`,
+          name: normalizedContact.name || normalizedContact.email,
+          email: normalizedContact.email
+        },
+        confirmationUrl: `https://agenda.lawgic.institute/access/${normalizedContact.id || 'new'}-token-2025`
       });
+
+      // Mostrar mensaje según el resultado del envío
+      if (ticketResult.success) {
+        setAlertModal({
+          isOpen: true,
+          type: 'exito',
+          title: 'Contacto creado y ticket enviado',
+          message: 'El contacto se ha creado exitosamente y se ha enviado el ticket de acceso por email.',
+          camposFaltantes: []
+        });
+      } else {
+        setAlertModal({
+          isOpen: true,
+          type: 'validacion',
+          title: 'Contacto creado, error al enviar ticket',
+          message: `El contacto se creó correctamente, pero hubo un error al enviar el ticket: ${ticketResult.error}`,
+          camposFaltantes: []
+        });
+      }
 
       // Limpiar formulario después de 2 segundos
       setTimeout(() => {

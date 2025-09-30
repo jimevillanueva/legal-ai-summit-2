@@ -154,18 +154,18 @@ const AddContact: React.FC = () => {
         email: contact.email.toLowerCase().trim()
       };
       
-      await contactService.createContact(normalizedContact);
+      const createdContact = await contactService.createContact(normalizedContact);
       
-      // Enviar ticket por email después de crear el contacto
+      // Enviar ticket por email usando los datos del contacto recién creado
       const emailService = EmailService.getInstance();
       const ticketResult = await emailService.sendTicketEmail({
-        to: normalizedContact.email,
+        to: createdContact.email,
         user: {
-          id: normalizedContact.id || `contact-${Date.now()}`,
-          name: normalizedContact.name || normalizedContact.email,
-          email: normalizedContact.email
+          id: createdContact.id,
+          name: createdContact.name || createdContact.email,
+          email: createdContact.email
         },
-        confirmationUrl: `https://agenda.lawgic.institute/access/${normalizedContact.id || 'new'}-token-2025`
+        confirmationUrl: `https://agenda.lawgic.institute/access/${createdContact.id}`
       });
 
       // Mostrar mensaje según el resultado del envío

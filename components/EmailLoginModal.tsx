@@ -23,7 +23,7 @@ const EmailLoginModal: React.FC<EmailLoginModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (email.trim()) {
-      await onLogin(email.trim());
+      await onLogin(email.trim().toLowerCase());
     }
   };
 

@@ -420,6 +420,29 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
     }
   };
 
+  // Función para verificar si la fecha de la sesión ya pasó
+  const isSessionDatePast = (sessionDay: string, sessionTime: string) => {
+    if (!sessionDay || !sessionTime) return false;
+    
+    try {
+      // Crear fecha de la sesión
+      const [year, month, day] = sessionDay.split('-').map(Number);
+      const [hour] = sessionTime.split(':').map(Number);
+      
+      // Crear objeto Date con la fecha y hora de la sesión (zona horaria local)
+      const sessionDate = new Date(year, month - 1, day, hour, 0, 0);
+      
+      // Obtener fecha y hora actual
+      const now = new Date();
+      
+      // Comparar fechas
+      return sessionDate < now;
+    } catch (error) {
+      console.error('Error al verificar fecha de sesión:', error);
+      return false;
+    }
+  };
+
   // Función para manejar el cierre del modal
   const handleBackdropClick = (e: React.MouseEvent) => {
     // Solo cerrar si el clic fue directamente en el backdrop
@@ -588,19 +611,31 @@ const EditSessionModal: React.FC<EditSessionModalProps> = ({ session, isOpen, on
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0">
                       <h4 className="text-xs sm:text-sm font-medium text-gray-800 dark:text-gray-200 flex items-center gap-2">
                         <i className="fa-solid fa-video text-gray-600"></i>
-                        Enlace de Zoom
+                        {isSessionDatePast(formData.day || '', formData.time || '') ? 'Sesión Grabada' : 'Enlace de Zoom'}
                       </h4>
-                      <button 
-                        onClick={handleZoomClick}
-                        className="inline-flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors shadow-md"
-                      >
-                        <svg className="w-3 h-3 sm:w-4 sm:h-4" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M2 11.6C2 8.23969 2 6.55953 2.65396 5.27606C3.2292 4.14708 4.14708 3.2292 5.27606 2.65396C6.55953 2 8.23969 2 11.6 2H20.4C23.7603 2 25.4405 2 26.7239 2.65396C27.8529 3.2292 28.7708 4.14708 29.346 5.27606C30 6.55953 30 8.23969 30 11.6V20.4C30 23.7603 30 25.4405 29.346 26.7239C28.7708 27.8529 27.8529 28.7708 26.7239 29.346C25.4405 30 23.7603 30 20.4 30H11.6C8.23969 30 6.55953 30 5.27606 29.346C4.14708 28.7708 3.2292 27.8529 2.65396 26.7239C2 25.4405 2 23.7603 2 20.4V11.6Z" fill="white"/>
-                          <path d="M8.26667 10C7.56711 10 7 10.6396 7 11.4286V18.3571C7 20.369 8.44612 22 10.23 22L17.7333 21.9286C18.4329 21.9286 19 21.289 19 20.5V13.5C19 11.4881 17.2839 10 15.5 10L8.26667 10Z" fill="#4087FC"/>
-                          <path d="M20.7122 12.7276C20.2596 13.1752 20 13.8211 20 14.5V17.3993C20 18.0782 20.2596 18.7242 20.7122 19.1717L23.5288 21.6525C24.1019 22.2191 25 21.7601 25 20.9005V11.1352C25 10.2755 24.1019 9.81654 23.5288 10.3832L20.7122 12.7276Z" fill="#4087FC"/>
-                        </svg>
-                        <span className="text-xs sm:text-sm">Unirse a la reunión</span>
-                      </button>
+                      {isSessionDatePast(formData.day || '', formData.time || '') ? (
+                        <button 
+                          onClick={handleZoomClick}
+                          className="inline-flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-purple-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors shadow-md"
+                        >
+                          <svg className="w-3 h-3 sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 5V19L19 12L8 5Z" fill="currentColor"/>
+                          </svg>
+                          <span className="text-xs sm:text-sm">Ver sesión grabada</span>
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={handleZoomClick}
+                          className="inline-flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors shadow-md"
+                        >
+                          <svg className="w-3 h-3 sm:w-4 sm:h-4" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M2 11.6C2 8.23969 2 6.55953 2.65396 5.27606C3.2292 4.14708 4.14708 3.2292 5.27606 2.65396C6.55953 2 8.23969 2 11.6 2H20.4C23.7603 2 25.4405 2 26.7239 2.65396C27.8529 3.2292 28.7708 4.14708 29.346 5.27606C30 6.55953 30 8.23969 30 11.6V20.4C30 23.7603 30 25.4405 29.346 26.7239C28.7708 27.8529 27.8529 28.7708 26.7239 29.346C25.4405 30 23.7603 30 20.4 30H11.6C8.23969 30 6.55953 30 5.27606 29.346C4.14708 28.7708 3.2292 27.8529 2.65396 26.7239C2 25.4405 2 23.7603 2 20.4V11.6Z" fill="white"/>
+                            <path d="M8.26667 10C7.56711 10 7 10.6396 7 11.4286V18.3571C7 20.369 8.44612 22 10.23 22L17.7333 21.9286C18.4329 21.9286 19 21.289 19 20.5V13.5C19 11.4881 17.2839 10 15.5 10L8.26667 10Z" fill="#4087FC"/>
+                            <path d="M20.7122 12.7276C20.2596 13.1752 20 13.8211 20 14.5V17.3993C20 18.0782 20.2596 18.7242 20.7122 19.1717L23.5288 21.6525C24.1019 22.2191 25 21.7601 25 20.9005V11.1352C25 10.2755 24.1019 9.81654 23.5288 10.3832L20.7122 12.7276Z" fill="#4087FC"/>
+                          </svg>
+                          <span className="text-xs sm:text-sm">Unirse a la reunión</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}

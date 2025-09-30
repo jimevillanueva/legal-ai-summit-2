@@ -74,21 +74,22 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onBack }) => {
       
       onLoginSuccess();
       
-      // Mostrar mensaje de éxito y redirigir
+      // Mostrar mensaje de éxito
       setError(''); // Limpiar errores
       setLoading(false);
       
       // Mostrar mensaje de éxito temporal
       const successMessage = document.createElement('div');
       successMessage.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-md z-50';
-      successMessage.textContent = '¡Login exitoso! Redirigiendo...';
+      successMessage.textContent = '¡Login exitoso!';
       document.body.appendChild(successMessage);
       
-      // Redirigir después de un momento
+      // Remover mensaje después de 3 segundos
       setTimeout(() => {
-        document.body.removeChild(successMessage);
-        window.location.href = '/';
-      }, 2000);
+        if (document.body.contains(successMessage)) {
+          document.body.removeChild(successMessage);
+        }
+      }, 3000);
     } catch (err) {
       setError('Error inesperado durante el login');
       console.error('Login error:', err);

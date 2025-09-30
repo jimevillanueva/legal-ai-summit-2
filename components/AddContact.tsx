@@ -14,7 +14,7 @@ const AddContact: React.FC = () => {
     phone: '',
     company: '',
     billing_address: '',
-    source: '',
+    source: 'cortesia',
     stripe_custome_id: '',
     metadata: '',
     group_session_id: ''
@@ -37,6 +37,81 @@ const AddContact: React.FC = () => {
     }));
   };
 
+  // Lista de dominios comunes para detectar errores tipográficos
+  const commonDomains = [
+    'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'live.com',
+    'icloud.com', 'me.com', 'aol.com', 'msn.com', 'ymail.com',
+    'protonmail.com', 'zoho.com', 'mail.com', 'gmx.com'
+  ];
+
+  // Función para calcular distancia de Levenshtein (similitud entre strings)
+  const levenshteinDistance = (str1: string, str2: string): number => {
+    const matrix = Array(str2.length + 1).fill(null).map(() => Array(str1.length + 1).fill(null));
+    
+    for (let i = 0; i <= str1.length; i++) matrix[0][i] = i;
+    for (let j = 0; j <= str2.length; j++) matrix[j][0] = j;
+    
+    for (let j = 1; j <= str2.length; j++) {
+      for (let i = 1; i <= str1.length; i++) {
+        const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
+        matrix[j][i] = Math.min(
+          matrix[j][i - 1] + 1,     // deletion
+          matrix[j - 1][i] + 1,     // insertion
+          matrix[j - 1][i - 1] + indicator // substitution
+        );
+      }
+    }
+    
+    return matrix[str2.length][str1.length];
+  };
+
+  // Función para encontrar dominio sugerido si hay error tipográfico
+  const findSuggestedDomain = (domain: string): string | null => {
+    const domainLower = domain.toLowerCase();
+    
+    // Primero verificar si el dominio ya es exactamente uno de los dominios comunes
+    if (commonDomains.includes(domainLower)) {
+      return null; // No sugerir nada si ya es correcto
+    }
+    
+    for (const commonDomain of commonDomains) {
+      const distance = levenshteinDistance(domainLower, commonDomain);
+      // Si la distancia es 1-2 caracteres y el dominio es similar en longitud
+      if (distance <= 2 && Math.abs(domainLower.length - commonDomain.length) <= 2) {
+        return commonDomain;
+      }
+    }
+    
+    return null;
+  };
+
+  // Función para validar dominio de email
+  const isValidEmailDomain = (email: string): { isValid: boolean; suggestedDomain?: string } => {
+    if (!email || !email.includes('@')) return { isValid: false };
+    
+    const domain = email.split('@')[1];
+    if (!domain) return { isValid: false };
+    
+    // Validar formato básico del dominio
+    const domainRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+    
+    // El dominio debe tener al menos un punto y una extensión válida
+    const hasValidExtension = /\.[a-zA-Z]{2,}$/.test(domain);
+    
+    const isFormatValid = domainRegex.test(domain) && hasValidExtension;
+    
+    if (!isFormatValid) return { isValid: false };
+    
+    // Verificar si hay errores tipográficos en dominios conocidos
+    const suggestedDomain = findSuggestedDomain(domain);
+    
+    if (suggestedDomain) {
+      return { isValid: false, suggestedDomain };
+    }
+    
+    return { isValid: true };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -52,10 +127,33 @@ const AddContact: React.FC = () => {
       return;
     }
 
+    // Validar que el dominio del email sea válido
+    const emailValidation = isValidEmailDomain(contact.email);
+    if (!emailValidation.isValid) {
+      const message = emailValidation.suggestedDomain 
+        ? `¿Quisiste decir "${contact.email.split('@')[0]}@${emailValidation.suggestedDomain}"? Por favor verifica el dominio del email.`
+        : 'Por favor ingresa un email con un dominio válido (ej: usuario@dominio.com).';
+      
+      setAlertModal({
+        isOpen: true,
+        type: 'validacion',
+        title: 'Email inválido',
+        message,
+        camposFaltantes: ['Email']
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      await contactService.createContact(contact);
+      // Normalizar email a minúsculas antes de guardar
+      const normalizedContact = {
+        ...contact,
+        email: contact.email.toLowerCase().trim()
+      };
+      
+      await contactService.createContact(normalizedContact);
       
       // Éxito - mostrar mensaje y redirigir
       setAlertModal({
@@ -75,7 +173,7 @@ const AddContact: React.FC = () => {
           phone: '',
           company: '',
           billing_address: '',
-          source: '',
+          source: 'cortesia',
           stripe_custome_id: '',
           metadata: '',
           group_session_id: ''
@@ -116,8 +214,6 @@ const AddContact: React.FC = () => {
             </p>
             <ul className="text-sm text-yellow-700 dark:text-yellow-300 list-disc list-inside space-y-1">
               <li>El <strong>email es el único campo obligatorio</strong></li>
-              <li>El contacto no debe existir previamente en el sistema</li>
-              <li>Todos los demás campos son opcionales</li>
             </ul>
           </div>
         </div>
@@ -169,7 +265,7 @@ const AddContact: React.FC = () => {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-            Empresa
+            Company
           </label>
           <input
             type="text"
@@ -177,20 +273,6 @@ const AddContact: React.FC = () => {
             value={contact.company}
             onChange={handleInputChange}
             placeholder="Empresa"
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-            Dirección de facturación
-          </label>
-          <input
-            type="text"
-            name="billing_address"
-            value={contact.billing_address}
-            onChange={handleInputChange}
-            placeholder="Dirección de facturación"
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
           />
         </div>
@@ -208,49 +290,6 @@ const AddContact: React.FC = () => {
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
           />
         </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-            ID de Stripe
-          </label>
-          <input
-            type="text"
-            name="stripe_custome_id"
-            value={contact.stripe_custome_id}
-            onChange={handleInputChange}
-            placeholder="ID de Stripe"
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-            Metadatos
-          </label>
-          <input
-            type="text"
-            name="metadata"
-            value={contact.metadata}
-            onChange={handleInputChange}
-            placeholder="Metadatos"
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-            ID de sesión
-          </label>
-          <input
-            type="text"
-            name="group_session_id"
-            value={contact.group_session_id}
-            onChange={handleInputChange}
-            placeholder="ID de sesión"
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-          />
-        </div>
-
         <div className="flex gap-3 pt-4">
           <button
             type="submit"

@@ -24,21 +24,48 @@ export const getStorageUrl = (bucketName: string, fileName: string): string | nu
 };
 
 /**
+ * Uploads a file to Supabase storage
+ * @param bucketName - The name of the storage bucket
+ * @param file - The file to upload
+ * @param fileName - The name to give the file in storage
+ * @returns The public URL of the uploaded file, or null if upload failed
+ */
+export const uploadFile = async (bucketName: string, file: File, fileName: string): Promise<string | null> => {
+  if (!supabase) {
+    console.error('Supabase client not initialized');
+    return null;
+  }
+
+  try {
+    const { data, error } = await supabase.storage
+      .from(bucketName)
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (error) {
+      console.error(`Error uploading file to ${bucketName}:`, error);
+      return null;
+    }
+
+    // Get the public URL
+    const publicUrl = getStorageUrl(bucketName, data.path);
+    return publicUrl;
+  } catch (error) {
+    console.error(`Exception uploading file to ${bucketName}:`, error);
+    return null;
+  }
+};
+
+/**
  * Gets the public URL for a speaker photo
  * @param photoFileName - The filename of the speaker photo or a full URL
  * @returns The public URL for the speaker photo, or null if not found
  */
 export const getSpeakerPhotoUrl = (photoFileName: string): string | null => {
-  
-  // Si ya es una URL completa, construir la URL correcta
+  // Si ya es una URL completa, devolverla tal como está
   if (photoFileName.startsWith('http://') || photoFileName.startsWith('https://')) {
-    // Extraer el nombre del archivo de la URL
-    const fileName = photoFileName.split('/').pop();
-    if (fileName) {
-      // Construir la URL correcta usando Supabase Storage
-      const url = getStorageUrl('speakers_event_photos', fileName);
-      return url;
-    }
     return photoFileName;
   }
   
@@ -53,16 +80,8 @@ export const getSpeakerPhotoUrl = (photoFileName: string): string | null => {
  * @returns The public URL for the company logo, or null if not found
  */
 export const getCompanyLogoUrl = (logoFileName: string): string | null => {
-  
-  // Si ya es una URL completa, construir la URL correcta
+  // Si ya es una URL completa, devolverla tal como está
   if (logoFileName.startsWith('http://') || logoFileName.startsWith('https://')) {
-    // Extraer el nombre del archivo de la URL
-    const fileName = logoFileName.split('/').pop();
-    if (fileName) {
-      // Construir la URL correcta usando Supabase Storage
-      const url = getStorageUrl('company_logo_event', fileName);
-      return url;
-    }
     return logoFileName;
   }
   

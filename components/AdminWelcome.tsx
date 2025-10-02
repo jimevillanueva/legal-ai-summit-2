@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import Header from './Header';
 
 const AdminWelcome: React.FC = () => {
   const { user, signOut } = useAuth();
@@ -25,7 +26,12 @@ const AdminWelcome: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+    <div >
+      <Header 
+        onShare={() => {}} 
+        onImportExport={() => {}} 
+      />
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
       <div className="max-w-md w-full space-y-8 p-8">
         <div className="text-center">
           <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/20 mb-4">
@@ -90,6 +96,7 @@ const AdminWelcome: React.FC = () => {
           </p>
         </div>
       </div>
+    </div>
     </div>
   );
 };

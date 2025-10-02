@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import AlertaModal from './AlertaModal';
 import SpeakerForm from './SpeakerForm';
 import SpeakerPreview from './SpeakerPreview';
+import Header from './Header';
 
 const AddEvent_Speaker: React.FC = () => {
     const navigate = useNavigate();
@@ -58,9 +59,6 @@ const AddEvent_Speaker: React.FC = () => {
             if (!formData.name.trim()) {
                 throw new Error('El nombre es requerido');
             }
-            if (!formData.position.trim()) {
-                throw new Error('La posición es requerida');
-            }
 
             // Formatear LinkedIn URL
             const formattedLinkedIn = formatLinkedInUrl(formData.linkedin);
@@ -86,7 +84,6 @@ const AddEvent_Speaker: React.FC = () => {
             setPhotoFile(null);
             setCompanyLogoFile(null);
 
- 
         } catch (error) {
             console.error('Error al crear speaker:', error);
             setAlertMessage(error instanceof Error ? error.message : 'Error al crear el speaker');
@@ -109,8 +106,22 @@ const AddEvent_Speaker: React.FC = () => {
         setShowAlert(false);
     };
 
+    // Datos para la vista previa en tiempo real
+    const previewData = {
+        name: formData.name,
+        position: formData.position,
+        linkedin: formData.linkedin,
+        photoFile,
+        companyLogoFile
+    };
+
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+        <div >
+            <Header 
+                onShare={() => {}} 
+                onImportExport={() => {}} 
+            />
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Formulario */}
@@ -128,6 +139,7 @@ const AddEvent_Speaker: React.FC = () => {
                     {/* Vista previa del Speaker */}
                     <SpeakerPreview
                         speaker={createdSpeaker}
+                        previewData={previewData}
                         onAddAnother={handleAddAnother}
                     />
                 </div>
@@ -143,6 +155,7 @@ const AddEvent_Speaker: React.FC = () => {
                     onClose={handleCloseAlert}
                 />
             )}
+        </div>
         </div>
     );
 };

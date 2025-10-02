@@ -73,18 +73,22 @@ const Header: React.FC<HeaderProps> = ({ onShare, onImportExport }) => {
         <div className="header-content">
           <div className="header-main">
             {/* Logo y título */}
+            <a href="/"> 
             <div className="logo-section">
+              
               <div className="logo-container">
                 <div className="logo-glow"></div>
                 <div className="logo-wrapper">
                   <img src="/logos/LAIS.png" alt="Logo Cumbre IA Legal" className="h-6 sm:h-8 md:h-12 w-auto" />
                 </div>
               </div>
+             
               <div className="logo-title">
                 <h1 className="text-xs sm:text-sm md:text-xl">LEGAL AI SUMMIT 2025</h1>
                 <p className="text-xs sm:text-sm">Agenda Interactiva</p>
               </div>
             </div>
+            </a>
 
             {/* Menú hamburguesa para móvil */}
             <div className="flex items-center gap-2 sm:gap-4">
